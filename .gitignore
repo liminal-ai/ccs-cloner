@@ -35,3 +35,6 @@ npm-debug.log*
 *.tmp
 *.temp
 .cache/
+
+# Internal docs (not public)
+docs/plans/

@@ -1,0 +1,61 @@
+{
+  "name": "ccs-cloner",
+  "version": "0.2.0",
+  "description": "CLI tool to clone and modify Claude Code sessions",
+  "type": "module",
+  "main": "dist/cli.js",
+  "bin": {
+    "ccs-cloner": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
+    "format:check": "prettier --check 'src/**/*.ts' 'test/**/*.ts'",
+    "lint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "build": "bun build ./src/cli.ts --outdir ./dist --target node --external node-fetch-native",
+    "prepublishOnly": "bun run build"
+  },
+  "dependencies": {
+    "c12": "^2.0.0",
+    "citty": "^0.2.0",
+    "consola": "^3.4.0",
+    "pathe": "^2.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.14",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Lee Moore <lee@liminal.ai>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/liminal-ai/ccs-cloner.git"
+  },
+  "homepage": "https://github.com/liminal-ai/ccs-cloner#readme",
+  "bugs": {
+    "url": "https://github.com/liminal-ai/ccs-cloner/issues"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "session",
+    "clone",
+    "cli",
+    "context",
+    "token",
+    "compression"
+  ],
+  "license": "MIT"
+}

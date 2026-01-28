@@ -1,0 +1,5 @@
+{"type":"summary","summary":"Simple linear session","leafUuid":"entry-4"}
+{"type":"user","uuid":"entry-1","parentUuid":null,"sessionId":"linear-session","timestamp":"2024-01-01T10:00:00Z","message":{"role":"user","content":"Hello!"}}
+{"type":"assistant","uuid":"entry-2","parentUuid":"entry-1","sessionId":"linear-session","timestamp":"2024-01-01T10:00:05Z","message":{"role":"assistant","content":[{"type":"text","text":"Hi there! How can I help you today?"}]}}
+{"type":"user","uuid":"entry-3","parentUuid":"entry-2","sessionId":"linear-session","timestamp":"2024-01-01T10:00:10Z","message":{"role":"user","content":"What is 2+2?"}}
+{"type":"assistant","uuid":"entry-4","parentUuid":"entry-3","sessionId":"linear-session","timestamp":"2024-01-01T10:00:15Z","message":{"role":"assistant","content":[{"type":"text","text":"2+2 equals 4."}]}}
