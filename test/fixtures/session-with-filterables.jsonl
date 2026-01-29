@@ -1,0 +1,7 @@
+{"type":"summary","summary":"Session with filterable entries","leafUuid":"entry-6"}
+{"type":"user","uuid":"entry-1","parentUuid":null,"sessionId":"filterables-session","timestamp":"2024-01-01T10:00:00Z","message":{"role":"user","content":"Hello!"}}
+{"type":"assistant","uuid":"entry-2","parentUuid":"entry-1","sessionId":"filterables-session","timestamp":"2024-01-01T10:00:01Z","message":{"role":"assistant","model":"<synthetic>","content":[{"type":"text","text":"Synthetic assistant message that should be filtered"}]}}
+{"type":"assistant","uuid":"entry-3","parentUuid":"entry-2","sessionId":"filterables-session","timestamp":"2024-01-01T10:00:02Z","isApiErrorMessage":true,"message":{"role":"assistant","content":[{"type":"text","text":"API error message that should be filtered"}]}}
+{"type":"file-history-snapshot","uuid":"entry-4","parentUuid":"entry-3","sessionId":"filterables-session","timestamp":"2024-01-01T10:00:03Z","messageId":"msg-1","isSnapshotUpdate":true,"snapshot":{"files":[]}}
+{"type":"user","uuid":"entry-5","parentUuid":"entry-4","sessionId":"filterables-session","timestamp":"2024-01-01T10:00:04Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"tool-1","content":"tool output","is_error":false}]}}
+{"type":"assistant","uuid":"entry-6","parentUuid":"entry-5","sessionId":"filterables-session","timestamp":"2024-01-01T10:00:05Z","message":{"role":"assistant","content":[{"type":"text","text":"This is the last real assistant message"}]}}

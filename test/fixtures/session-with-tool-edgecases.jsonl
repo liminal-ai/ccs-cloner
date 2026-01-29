@@ -1,0 +1,6 @@
+{"type":"summary","summary":"Session with tool edge cases","leafUuid":"entry-5"}
+{"type":"user","uuid":"entry-1","parentUuid":null,"sessionId":"tool-edgecases","timestamp":"2024-01-01T10:00:00Z","message":{"role":"user","content":"Please run a tool"}}
+{"type":"assistant","uuid":"entry-2","parentUuid":"entry-1","sessionId":"tool-edgecases","timestamp":"2024-01-01T10:00:01Z","message":{"role":"assistant","content":[{"type":"tool_use","name":"read_file","input":{"path":"README.md"}}]}}
+{"type":"user","uuid":"entry-3","parentUuid":"entry-2","sessionId":"tool-edgecases","timestamp":"2024-01-01T10:00:02Z","message":{"role":"user","content":[{"type":"tool_result","content":"file content","is_error":false}]}}
+{"type":"assistant","uuid":"entry-4","parentUuid":"entry-3","sessionId":"tool-edgecases","timestamp":"2024-01-01T10:00:03Z","message":{"role":"assistant","content":[{"type":"text","text":"Thanks"}]}}
+{"type":"user","uuid":"entry-5","parentUuid":"entry-4","sessionId":"tool-edgecases","timestamp":"2024-01-01T10:00:04Z","message":{"role":"user","content":"Next turn"}}

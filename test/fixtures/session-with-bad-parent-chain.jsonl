@@ -1,0 +1,5 @@
+{"type":"summary","summary":"Session with broken parent chain","leafUuid":"entry-4"}
+{"type":"user","uuid":"entry-1","parentUuid":null,"sessionId":"bad-parent-chain","timestamp":"2024-01-01T10:00:00Z","message":{"role":"user","content":"Root message"}}
+{"type":"assistant","uuid":"entry-2","parentUuid":"entry-1","sessionId":"bad-parent-chain","timestamp":"2024-01-01T10:00:01Z","message":{"role":"assistant","content":[{"type":"text","text":"Assistant reply"}]}}
+{"type":"user","uuid":"entry-3","parentUuid":"missing-parent-uuid","sessionId":"bad-parent-chain","timestamp":"2024-01-01T10:00:02Z","message":{"role":"user","content":"This entry points at a missing parentUuid"}}
+{"type":"assistant","uuid":"entry-4","parentUuid":"entry-3","sessionId":"bad-parent-chain","timestamp":"2024-01-01T10:00:03Z","message":{"role":"assistant","content":[{"type":"text","text":"Final reply"}]}}

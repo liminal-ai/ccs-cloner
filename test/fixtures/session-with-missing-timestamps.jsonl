@@ -1,0 +1,6 @@
+{"type":"summary","summary":"Session with multiple leaves and missing timestamps","leafUuid":"entry-4"}
+{"type":"user","uuid":"entry-1","parentUuid":null,"sessionId":"no-timestamps","message":{"role":"user","content":"Start"}}
+{"type":"assistant","uuid":"entry-2","parentUuid":"entry-1","sessionId":"no-timestamps","message":{"role":"assistant","content":[{"type":"text","text":"Branch point"}]}}
+{"type":"user","uuid":"entry-3-leafA","parentUuid":"entry-2","sessionId":"no-timestamps","message":{"role":"user","content":"Leaf A"}}
+{"type":"assistant","uuid":"entry-4","parentUuid":"entry-3-leafA","sessionId":"no-timestamps","message":{"role":"assistant","content":[{"type":"text","text":"Leaf A response"}]}}
+{"type":"user","uuid":"entry-5-leafB","parentUuid":"entry-2","sessionId":"no-timestamps","message":{"role":"user","content":"Leaf B"}}
