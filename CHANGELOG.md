@@ -7,7 +7,6 @@ All notable changes to ccs-cloner will be documented in this file.
 ### Changed
 - Replaced eslint + prettier with biome for linting and formatting
 - Upgraded c12 from 2.x to 3.3.3 to fix tar security vulnerabilities (3 high severity)
-- Removed @types/bun dependency
 
 ### Security
 - Fixed 3 high severity vulnerabilities in tar via c12 dependency chain
