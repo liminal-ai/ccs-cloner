@@ -7,20 +7,23 @@
 
 import { loadConfig } from "c12";
 import type {
-  ResolvedConfiguration,
-  UserConfiguration,
-  CliConfiguration,
-  ToolRemovalPreset,
+	CliConfiguration,
+	ResolvedConfiguration,
+	ToolRemovalPreset,
+	UserConfiguration,
 } from "../types/index.js";
-import { getDefaultConfiguration, readEnvironmentConfiguration } from "./default-configuration.js";
 import { safeValidateConfiguration } from "./configuration-schema.js";
+import {
+	getDefaultConfiguration,
+	readEnvironmentConfiguration,
+} from "./default-configuration.js";
 import { isValidPresetName } from "./tool-removal-presets.js";
 
 /**
  * Result from c12 config loading.
  */
 interface C12ConfigResult {
-  config: UserConfiguration;
+	config: UserConfiguration;
 }
 
 /**
@@ -36,19 +39,19 @@ interface C12ConfigResult {
  * @returns User configuration from config file or empty object
  */
 async function loadConfigFile(): Promise<UserConfiguration> {
-  try {
-    const result = (await loadConfig({
-      name: "ccs-cloner",
-      defaults: {},
-    })) as C12ConfigResult;
+	try {
+		const result = (await loadConfig({
+			name: "ccs-cloner",
+			defaults: {},
+		})) as C12ConfigResult;
 
-    // Validate the loaded config
-    const validated = safeValidateConfiguration(result.config);
-    return validated || {};
-  } catch {
-    // Config file not found or invalid - use defaults
-    return {};
-  }
+		// Validate the loaded config
+		const validated = safeValidateConfiguration(result.config);
+		return validated || {};
+	} catch {
+		// Config file not found or invalid - use defaults
+		return {};
+	}
 }
 
 /**
@@ -64,64 +67,67 @@ async function loadConfigFile(): Promise<UserConfiguration> {
  * @returns Fully resolved configuration
  */
 export async function loadConfiguration(
-  cliConfig?: CliConfiguration
+	cliConfig?: CliConfiguration,
 ): Promise<ResolvedConfiguration> {
-  // Start with defaults
-  const defaults = getDefaultConfiguration();
+	// Start with defaults
+	const defaults = getDefaultConfiguration();
 
-  // Load config file
-  const fileConfig = await loadConfigFile();
+	// Load config file
+	const fileConfig = await loadConfigFile();
 
-  // Load environment config
-  const envConfig = readEnvironmentConfiguration();
+	// Load environment config
+	const envConfig = readEnvironmentConfiguration();
 
-  // Merge custom presets (only from config file, not env/cli)
-  const customPresets: Record<string, ToolRemovalPreset> = {
-    ...defaults.customPresets,
-    ...fileConfig.customPresets,
-  };
+	// Merge custom presets (only from config file, not env/cli)
+	const customPresets: Record<string, ToolRemovalPreset> = {
+		...defaults.customPresets,
+		...fileConfig.customPresets,
+	};
 
-  // Validate defaultPreset if specified in config file
-  if (fileConfig.defaultPreset && !isValidPresetName(fileConfig.defaultPreset, customPresets)) {
-    throw new Error(
-      `Invalid defaultPreset "${fileConfig.defaultPreset}" in configuration. ` +
-        `Preset must be a built-in preset (default, aggressive, extreme) or defined in customPresets.`
-    );
-  }
+	// Validate defaultPreset if specified in config file
+	if (
+		fileConfig.defaultPreset &&
+		!isValidPresetName(fileConfig.defaultPreset, customPresets)
+	) {
+		throw new Error(
+			`Invalid defaultPreset "${fileConfig.defaultPreset}" in configuration. ` +
+				`Preset must be a built-in preset (default, aggressive, extreme) or defined in customPresets.`,
+		);
+	}
 
-  // Merge in order of precedence (later overrides earlier)
-  const merged: ResolvedConfiguration = {
-    ...defaults,
-    customPresets,
-    ...(fileConfig.claudeDataDirectory && {
-      claudeDataDirectory: fileConfig.claudeDataDirectory,
-    }),
-    ...(fileConfig.defaultPreset && {
-      defaultPreset: fileConfig.defaultPreset,
-    }),
-    ...(fileConfig.outputFormat && { outputFormat: fileConfig.outputFormat }),
-    ...(fileConfig.verboseOutput !== undefined && {
-      verboseOutput: fileConfig.verboseOutput,
-    }),
-    // Environment overrides config file
-    ...(envConfig.claudeDataDirectory && {
-      claudeDataDirectory: envConfig.claudeDataDirectory,
-    }),
-    ...(envConfig.outputFormat && { outputFormat: envConfig.outputFormat }),
-    ...(envConfig.verboseOutput !== undefined && {
-      verboseOutput: envConfig.verboseOutput,
-    }),
-    // CLI overrides everything
-    ...(cliConfig?.claudeDataDirectory && {
-      claudeDataDirectory: cliConfig.claudeDataDirectory,
-    }),
-    ...(cliConfig?.outputFormat && { outputFormat: cliConfig.outputFormat }),
-    ...(cliConfig?.verboseOutput !== undefined && {
-      verboseOutput: cliConfig.verboseOutput,
-    }),
-  };
+	// Merge in order of precedence (later overrides earlier)
+	const merged: ResolvedConfiguration = {
+		...defaults,
+		customPresets,
+		...(fileConfig.claudeDataDirectory && {
+			claudeDataDirectory: fileConfig.claudeDataDirectory,
+		}),
+		...(fileConfig.defaultPreset && {
+			defaultPreset: fileConfig.defaultPreset,
+		}),
+		...(fileConfig.outputFormat && { outputFormat: fileConfig.outputFormat }),
+		...(fileConfig.verboseOutput !== undefined && {
+			verboseOutput: fileConfig.verboseOutput,
+		}),
+		// Environment overrides config file
+		...(envConfig.claudeDataDirectory && {
+			claudeDataDirectory: envConfig.claudeDataDirectory,
+		}),
+		...(envConfig.outputFormat && { outputFormat: envConfig.outputFormat }),
+		...(envConfig.verboseOutput !== undefined && {
+			verboseOutput: envConfig.verboseOutput,
+		}),
+		// CLI overrides everything
+		...(cliConfig?.claudeDataDirectory && {
+			claudeDataDirectory: cliConfig.claudeDataDirectory,
+		}),
+		...(cliConfig?.outputFormat && { outputFormat: cliConfig.outputFormat }),
+		...(cliConfig?.verboseOutput !== undefined && {
+			verboseOutput: cliConfig.verboseOutput,
+		}),
+	};
 
-  return merged;
+	return merged;
 }
 
 /**
@@ -133,25 +139,27 @@ export async function loadConfiguration(
  * @param cliConfig - Configuration from CLI arguments (optional)
  * @returns Resolved configuration
  */
-export function loadConfigurationSync(cliConfig?: CliConfiguration): ResolvedConfiguration {
-  const defaults = getDefaultConfiguration();
-  const envConfig = readEnvironmentConfiguration();
+export function loadConfigurationSync(
+	cliConfig?: CliConfiguration,
+): ResolvedConfiguration {
+	const defaults = getDefaultConfiguration();
+	const envConfig = readEnvironmentConfiguration();
 
-  return {
-    ...defaults,
-    ...(envConfig.claudeDataDirectory && {
-      claudeDataDirectory: envConfig.claudeDataDirectory,
-    }),
-    ...(envConfig.outputFormat && { outputFormat: envConfig.outputFormat }),
-    ...(envConfig.verboseOutput !== undefined && {
-      verboseOutput: envConfig.verboseOutput,
-    }),
-    ...(cliConfig?.claudeDataDirectory && {
-      claudeDataDirectory: cliConfig.claudeDataDirectory,
-    }),
-    ...(cliConfig?.outputFormat && { outputFormat: cliConfig.outputFormat }),
-    ...(cliConfig?.verboseOutput !== undefined && {
-      verboseOutput: cliConfig.verboseOutput,
-    }),
-  };
+	return {
+		...defaults,
+		...(envConfig.claudeDataDirectory && {
+			claudeDataDirectory: envConfig.claudeDataDirectory,
+		}),
+		...(envConfig.outputFormat && { outputFormat: envConfig.outputFormat }),
+		...(envConfig.verboseOutput !== undefined && {
+			verboseOutput: envConfig.verboseOutput,
+		}),
+		...(cliConfig?.claudeDataDirectory && {
+			claudeDataDirectory: cliConfig.claudeDataDirectory,
+		}),
+		...(cliConfig?.outputFormat && { outputFormat: cliConfig.outputFormat }),
+		...(cliConfig?.verboseOutput !== undefined && {
+			verboseOutput: cliConfig.verboseOutput,
+		}),
+	};
 }

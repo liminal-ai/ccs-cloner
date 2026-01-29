@@ -12,12 +12,13 @@ import { mainCommand, showHelp } from "./commands/main-command.js";
 
 // Intercept --help/-h before citty to show comprehensive help
 const args = process.argv.slice(2);
-const isHelpOnly = args.length === 1 && (args[0] === "--help" || args[0] === "-h");
+const isHelpOnly =
+	args.length === 1 && (args[0] === "--help" || args[0] === "-h");
 const isNoArgs = args.length === 0;
 
 if (isHelpOnly || isNoArgs) {
-  showHelp();
-  process.exit(0);
+	showHelp();
+	process.exit(0);
 }
 
 runMain(mainCommand);

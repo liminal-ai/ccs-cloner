@@ -10,31 +10,33 @@ import { z } from "zod";
  * Schema for a tool removal preset.
  */
 export const toolRemovalPresetSchema = z.object({
-  name: z.string(),
-  keepTurnsWithTools: z.number().min(0),
-  truncatePercent: z.number().min(0).max(100),
+	name: z.string(),
+	keepTurnsWithTools: z.number().min(0),
+	truncatePercent: z.number().min(0).max(100),
 });
 
 /**
  * Schema for user configuration file.
  */
 export const userConfigurationSchema = z.object({
-  /** Claude data directory (default: ~/.claude) */
-  claudeDataDirectory: z.string().optional(),
-  /** Default preset name for tool removal (default: "default") */
-  defaultPreset: z.string().optional(),
-  /** Custom tool removal presets */
-  customPresets: z.record(z.string(), toolRemovalPresetSchema).optional(),
-  /** Output format: human-readable or JSON */
-  outputFormat: z.enum(["human", "json"]).optional(),
-  /** Enable verbose output */
-  verboseOutput: z.boolean().optional(),
+	/** Claude data directory (default: ~/.claude) */
+	claudeDataDirectory: z.string().optional(),
+	/** Default preset name for tool removal (default: "default") */
+	defaultPreset: z.string().optional(),
+	/** Custom tool removal presets */
+	customPresets: z.record(z.string(), toolRemovalPresetSchema).optional(),
+	/** Output format: human-readable or JSON */
+	outputFormat: z.enum(["human", "json"]).optional(),
+	/** Enable verbose output */
+	verboseOutput: z.boolean().optional(),
 });
 
 /**
  * Type inferred from the schema.
  */
-export type UserConfigurationFromSchema = z.infer<typeof userConfigurationSchema>;
+export type UserConfigurationFromSchema = z.infer<
+	typeof userConfigurationSchema
+>;
 
 /**
  * Validate a configuration object.
@@ -43,8 +45,10 @@ export type UserConfigurationFromSchema = z.infer<typeof userConfigurationSchema
  * @returns Validated configuration
  * @throws ZodError if validation fails
  */
-export function validateConfiguration(config: unknown): UserConfigurationFromSchema {
-  return userConfigurationSchema.parse(config);
+export function validateConfiguration(
+	config: unknown,
+): UserConfigurationFromSchema {
+	return userConfigurationSchema.parse(config);
 }
 
 /**
@@ -53,7 +57,9 @@ export function validateConfiguration(config: unknown): UserConfigurationFromSch
  * @param config - Configuration object to validate
  * @returns Validated configuration or null if invalid
  */
-export function safeValidateConfiguration(config: unknown): UserConfigurationFromSchema | null {
-  const result = userConfigurationSchema.safeParse(config);
-  return result.success ? result.data : null;
+export function safeValidateConfiguration(
+	config: unknown,
+): UserConfigurationFromSchema | null {
+	const result = userConfigurationSchema.safeParse(config);
+	return result.success ? result.data : null;
 }

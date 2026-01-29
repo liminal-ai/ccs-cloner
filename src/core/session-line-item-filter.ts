@@ -8,7 +8,7 @@
  * - file-history-snapshot entries (references external backup files)
  */
 
-import type { SessionLineItem, FilteredEntriesResult } from "../types/index.js";
+import type { FilteredEntriesResult, SessionLineItem } from "../types/index.js";
 
 /**
  * Filter out entries that shouldn't be cloned.
@@ -22,37 +22,39 @@ import type { SessionLineItem, FilteredEntriesResult } from "../types/index.js";
  * @param entries - Array of session entries
  * @returns Filtered entries and count of entries removed
  */
-export function filterCloneableEntries(entries: SessionLineItem[]): FilteredEntriesResult {
-  const original = entries.length;
-  const filtered = entries.filter((entry) => {
-    // Remove API error messages
-    if (entry.isApiErrorMessage) {
-      return false;
-    }
+export function filterCloneableEntries(
+	entries: SessionLineItem[],
+): FilteredEntriesResult {
+	const original = entries.length;
+	const filtered = entries.filter((entry) => {
+		// Remove API error messages
+		if (entry.isApiErrorMessage) {
+			return false;
+		}
 
-    // Remove synthetic messages
-    if (entry.message?.model === "<synthetic>") {
-      return false;
-    }
+		// Remove synthetic messages
+		if (entry.message?.model === "<synthetic>") {
+			return false;
+		}
 
-    // Remove old summary entries (we create a fresh one)
-    if (entry.type === "summary") {
-      return false;
-    }
+		// Remove old summary entries (we create a fresh one)
+		if (entry.type === "summary") {
+			return false;
+		}
 
-    // Remove file-history-snapshot entries (references external backup files)
-    if (entry.type === "file-history-snapshot") {
-      return false;
-    }
+		// Remove file-history-snapshot entries (references external backup files)
+		if (entry.type === "file-history-snapshot") {
+			return false;
+		}
 
-    // Keep everything else
-    return true;
-  });
+		// Keep everything else
+		return true;
+	});
 
-  return {
-    entries: filtered,
-    filteredCount: original - filtered.length,
-  };
+	return {
+		entries: filtered,
+		filteredCount: original - filtered.length,
+	};
 }
 
 /**
@@ -62,7 +64,7 @@ export function filterCloneableEntries(entries: SessionLineItem[]): FilteredEntr
  * @returns true if entry is a user message with content
  */
 export function isUserMessageEntry(entry: SessionLineItem): boolean {
-  return entry.type === "user" && entry.message?.content !== undefined;
+	return entry.type === "user" && entry.message?.content !== undefined;
 }
 
 /**
@@ -72,5 +74,5 @@ export function isUserMessageEntry(entry: SessionLineItem): boolean {
  * @returns true if entry is an assistant message
  */
 export function isAssistantMessageEntry(entry: SessionLineItem): boolean {
-  return entry.type === "assistant" && entry.message !== undefined;
+	return entry.type === "assistant" && entry.message !== undefined;
 }

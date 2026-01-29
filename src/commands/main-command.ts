@@ -6,13 +6,13 @@
 
 import { defineCommand } from "citty";
 import { cloneCommand } from "./clone-command.js";
-import { listCommand } from "./list-command.js";
 import { infoCommand } from "./info-command.js";
+import { listCommand } from "./list-command.js";
 
-const VERSION = "0.3.2";
+const VERSION = "0.3.3";
 
 export function showHelp(): void {
-  console.log(`ccs-cloner v${VERSION} - Clone Claude Code sessions with reduced context
+	console.log(`ccs-cloner v${VERSION} - Clone Claude Code sessions with reduced context
 
 TIP: Configure Claude Code to show session ID in status line for easy access.
 
@@ -63,50 +63,51 @@ Run "ccs-cloner <command> --help" for command-specific options.`);
 }
 
 export const mainCommand = defineCommand({
-  meta: {
-    name: "ccs-cloner",
-    version: VERSION,
-    description: "Clone Claude Code sessions with reduced context for continuation",
-  },
+	meta: {
+		name: "ccs-cloner",
+		version: VERSION,
+		description:
+			"Clone Claude Code sessions with reduced context for continuation",
+	},
 
-  args: {
-    help: {
-      type: "boolean",
-      alias: "h",
-      description: "Show help",
-    },
-    version: {
-      type: "boolean",
-      description: "Show version",
-    },
-    quickstart: {
-      type: "boolean",
-      alias: "qs",
-      description: "Show quickstart guide",
-    },
-  },
+	args: {
+		help: {
+			type: "boolean",
+			alias: "h",
+			description: "Show help",
+		},
+		version: {
+			type: "boolean",
+			description: "Show version",
+		},
+		quickstart: {
+			type: "boolean",
+			alias: "qs",
+			description: "Show quickstart guide",
+		},
+	},
 
-  subCommands: {
-    clone: cloneCommand,
-    list: listCommand,
-    info: infoCommand,
-  },
+	subCommands: {
+		clone: cloneCommand,
+		list: listCommand,
+		info: infoCommand,
+	},
 
-  async run({ args }) {
-    if (args.version) {
-      console.log(`ccs-cloner v${VERSION}`);
-      process.exit(0);
-    }
+	async run({ args }) {
+		if (args.version) {
+			console.log(`ccs-cloner v${VERSION}`);
+			process.exit(0);
+		}
 
-    if (args.help) {
-      // Comprehensive help (intercept before citty's default)
-      showHelp();
-      process.exit(0);
-    }
+		if (args.help) {
+			// Comprehensive help (intercept before citty's default)
+			showHelp();
+			process.exit(0);
+		}
 
-    if (args.quickstart) {
-      // Minimal, high-signal quickstart for agents (~250 tokens)
-      console.log(`ccs-cloner v${VERSION} - Clone Claude Code sessions with reduced context
+		if (args.quickstart) {
+			// Minimal, high-signal quickstart for agents (~250 tokens)
+			console.log(`ccs-cloner v${VERSION} - Clone Claude Code sessions with reduced context
 
 TIP: Configure Claude Code to show session ID in status line for easy access.
 
@@ -130,11 +131,11 @@ WHAT HAPPENS
   - Registers new session in Claude Code
 
 Run "ccs-cloner --help" for full options and custom presets.`);
-      process.exit(0);
-    }
+			process.exit(0);
+		}
 
-    // Default: show comprehensive help
-    showHelp();
-    process.exit(0);
-  },
+		// Default: show comprehensive help
+		showHelp();
+		process.exit(0);
+	},
 });

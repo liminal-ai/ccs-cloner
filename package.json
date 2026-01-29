@@ -1,6 +1,6 @@
 {
   "name": "ccs-cloner",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "CLI tool to clone and modify Claude Code sessions",
   "type": "module",
   "main": "dist/cli.js",
@@ -12,9 +12,10 @@
     "README.md"
   ],
   "scripts": {
-    "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
-    "format:check": "prettier --check 'src/**/*.ts' 'test/**/*.ts'",
-    "lint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
+    "format": "biome format --write src test",
+    "format:check": "biome format src test",
+    "lint": "biome lint src test",
+    "check": "biome check src test",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "build": "bun build ./src/cli.ts --outdir ./dist --target node --external node-fetch-native && node -e \"const fs=require('fs');const f='./dist/cli.js';fs.writeFileSync(f,fs.readFileSync(f,'utf8').replace('#!/usr/bin/env bun','#!/usr/bin/env node'))\"",
@@ -28,11 +29,7 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
-    "@types/bun": "^1.1.14",
-    "@typescript-eslint/eslint-plugin": "^8.18.0",
-    "@typescript-eslint/parser": "^8.18.0",
-    "eslint": "^9.17.0",
-    "prettier": "^3.4.2",
+    "@biomejs/biome": "2.3.12",
     "typescript": "^5.7.2"
   },
   "engines": {

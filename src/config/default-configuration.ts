@@ -6,7 +6,10 @@
 
 import { homedir } from "os";
 import { join } from "pathe";
-import type { ResolvedConfiguration, EnvironmentConfiguration } from "../types/index.js";
+import type {
+	EnvironmentConfiguration,
+	ResolvedConfiguration,
+} from "../types/index.js";
 
 /**
  * Get the default Claude data directory.
@@ -16,7 +19,7 @@ import type { ResolvedConfiguration, EnvironmentConfiguration } from "../types/i
  * @returns Absolute path to Claude data directory
  */
 export function getDefaultClaudeDir(): string {
-  return process.env.CCS_CLONER_CLAUDE_DIR || join(homedir(), ".claude");
+	return process.env.CCS_CLONER_CLAUDE_DIR || join(homedir(), ".claude");
 }
 
 /**
@@ -30,27 +33,27 @@ export function getDefaultClaudeDir(): string {
  * @returns Environment-based configuration
  */
 export function readEnvironmentConfiguration(): EnvironmentConfiguration {
-  const config: EnvironmentConfiguration = {};
+	const config: EnvironmentConfiguration = {};
 
-  // Claude data directory
-  const claudeDir = process.env.CCS_CLONER_CLAUDE_DIR;
-  if (claudeDir) {
-    config.claudeDataDirectory = claudeDir;
-  }
+	// Claude data directory
+	const claudeDir = process.env.CCS_CLONER_CLAUDE_DIR;
+	if (claudeDir) {
+		config.claudeDataDirectory = claudeDir;
+	}
 
-  // Output format
-  const outputFormat = process.env.CCS_CLONER_OUTPUT_FORMAT;
-  if (outputFormat === "json" || outputFormat === "human") {
-    config.outputFormat = outputFormat;
-  }
+	// Output format
+	const outputFormat = process.env.CCS_CLONER_OUTPUT_FORMAT;
+	if (outputFormat === "json" || outputFormat === "human") {
+		config.outputFormat = outputFormat;
+	}
 
-  // Verbose output
-  const verbose = process.env.CCS_CLONER_VERBOSE;
-  if (verbose === "1" || verbose === "true") {
-    config.verboseOutput = true;
-  }
+	// Verbose output
+	const verbose = process.env.CCS_CLONER_VERBOSE;
+	if (verbose === "1" || verbose === "true") {
+		config.verboseOutput = true;
+	}
 
-  return config;
+	return config;
 }
 
 /**
@@ -59,11 +62,11 @@ export function readEnvironmentConfiguration(): EnvironmentConfiguration {
  * @returns Default resolved configuration
  */
 export function getDefaultConfiguration(): ResolvedConfiguration {
-  return {
-    claudeDataDirectory: getDefaultClaudeDir(),
-    defaultPreset: "default",
-    customPresets: {},
-    outputFormat: "human",
-    verboseOutput: false,
-  };
+	return {
+		claudeDataDirectory: getDefaultClaudeDir(),
+		defaultPreset: "default",
+		customPresets: {},
+		outputFormat: "human",
+		verboseOutput: false,
+	};
 }

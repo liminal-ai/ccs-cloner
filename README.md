@@ -10,7 +10,7 @@ ccs-cloner creates a lean copy of a session by:
 
 1. Removing tool calls from old turns while preserving recent ones
 2. Truncating tool content in intermediate turns for gradual context reduction
-3. Automatically removing thinking blocks when tools are modified
+3. Automatically removing thinking blocks when `--strip-tools` is used
 
 The cloned session appears in `claude --resume` and can be continued with reduced context.
 
@@ -29,7 +29,7 @@ cd ccs-cloner
 bun install && bun link
 ```
 
-Requires Bun 1.0+ or Node.js 20+.
+Requires Bun 1.0+ or Node.js 18+.
 
 ## Quick Start
 
@@ -455,6 +455,10 @@ src/
   types/                 # TypeScript type definitions
   errors/                # Custom error classes
 ```
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
 
 ## License
 

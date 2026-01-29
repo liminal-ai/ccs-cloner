@@ -24,99 +24,92 @@
  * ```
  */
 
-// Core operations
-export { executeCloneOperation } from "./core/clone-operation-executor.js";
-// extractActiveBranchFromSession disabled - being evaluated for fixing or removal
-export { filterCloneableEntries } from "./core/session-line-item-filter.js";
-export { removeToolCallsFromHistory } from "./core/tool-call-remover.js";
-export { repairBrokenParentReferences } from "./core/parent-chain-repairer.js";
-export { identifyTurnBoundaries, countTurns } from "./core/turn-boundary-calculator.js";
-
-// IO operations
-export {
-  findSessionFileById,
-  listAllProjects,
-  listSessionsInProject,
-  getProjectDirFromPath,
-  decodeProjectPath,
-  encodeProjectPath,
-} from "./io/session-directory-scanner.js";
-
-export {
-  parseSessionFile,
-  parseSessionContent,
-  serializeSessionEntries,
-  extractFirstUserMessage,
-  countToolCalls,
-  hasThinkingBlocks,
-} from "./io/session-file-reader.js";
-
-export {
-  writeSessionFile,
-  createTodosFile,
-  createSessionEnvDirectory,
-} from "./io/session-file-writer.js";
-
-export {
-  addSessionToIndex,
-  readSessionsIndex,
-  removeSessionFromIndex,
-} from "./io/session-index-updater.js";
-
 // Configuration
 export { loadConfiguration } from "./config/configuration-loader.js";
 export { getDefaultClaudeDir } from "./config/default-configuration.js";
-
 // Preset system
 export {
-  BUILT_IN_PRESETS,
-  isValidPresetName,
-  resolvePreset,
-  resolveToolRemovalOptions,
-  listAvailablePresets,
+	BUILT_IN_PRESETS,
+	isValidPresetName,
+	listAvailablePresets,
+	resolvePreset,
+	resolveToolRemovalOptions,
 } from "./config/tool-removal-presets.js";
-
+// Core operations
+export { executeCloneOperation } from "./core/clone-operation-executor.js";
+export { repairBrokenParentReferences } from "./core/parent-chain-repairer.js";
+// extractActiveBranchFromSession disabled - being evaluated for fixing or removal
+export { filterCloneableEntries } from "./core/session-line-item-filter.js";
+export { removeToolCallsFromHistory } from "./core/tool-call-remover.js";
+export {
+	countTurns,
+	identifyTurnBoundaries,
+} from "./core/turn-boundary-calculator.js";
 // Errors
 export {
-  CcsError,
-  SessionNotFoundError,
-  InvalidSessionError,
-  ConfigurationError,
-  ArgumentValidationError,
-  ActiveBranchExtractionError,
-  FileOperationError,
+	ActiveBranchExtractionError,
+	ArgumentValidationError,
+	CcsError,
+	ConfigurationError,
+	FileOperationError,
+	InvalidSessionError,
+	SessionNotFoundError,
 } from "./errors/clone-operation-errors.js";
+// IO operations
+export {
+	decodeProjectPath,
+	encodeProjectPath,
+	findSessionFileById,
+	getProjectDirFromPath,
+	listAllProjects,
+	listSessionsInProject,
+} from "./io/session-directory-scanner.js";
+export {
+	countToolCalls,
+	extractFirstUserMessage,
+	hasThinkingBlocks,
+	parseSessionContent,
+	parseSessionFile,
+	serializeSessionEntries,
+} from "./io/session-file-reader.js";
+export {
+	createSessionEnvDirectory,
+	createTodosFile,
+	writeSessionFile,
+} from "./io/session-file-writer.js";
+export {
+	addSessionToIndex,
+	readSessionsIndex,
+	removeSessionFromIndex,
+} from "./io/session-index-updater.js";
 
 // Types
 export type {
-  // Session types
-  SessionLineItem,
-  ContentBlock,
-  TextBlock,
-  ToolUseBlock,
-  ToolResultBlock,
-  ThinkingBlock,
-  ConversationMessage,
-  SessionIndexEntry,
-  SessionsIndex,
-
-  // Tool removal types
-  TurnBoundary,
-  ToolRemovalPreset,
-  ToolRemovalOptions,
-  ResolvedToolRemovalOptions,
-  ToolRemovalResult,
-  ToolRemovalStatistics,
-
-  // Clone operation types
-  CloneOperationOptions,
-  CloneOperationResult,
-  CloneOperationStatistics,
-  FilteredEntriesResult,
-  SessionInfo,
-  SessionDetails,
-
-  // Configuration types
-  ResolvedConfiguration,
-  UserConfiguration,
+	// Clone operation types
+	CloneOperationOptions,
+	CloneOperationResult,
+	CloneOperationStatistics,
+	ContentBlock,
+	ConversationMessage,
+	FilteredEntriesResult,
+	// Configuration types
+	ResolvedConfiguration,
+	ResolvedToolRemovalOptions,
+	SessionDetails,
+	SessionIndexEntry,
+	SessionInfo,
+	// Session types
+	SessionLineItem,
+	SessionsIndex,
+	TextBlock,
+	ThinkingBlock,
+	ToolRemovalOptions,
+	ToolRemovalPreset,
+	ToolRemovalResult,
+	ToolRemovalStatistics,
+	ToolResultBlock,
+	ToolUseBlock,
+	// Tool removal types
+	TurnBoundary,
+	UserConfiguration,
 } from "./types/index.js";
