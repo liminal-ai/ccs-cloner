@@ -2,6 +2,15 @@
 
 All notable changes to ccs-cloner will be documented in this file.
 
+## [0.3.4] - 2026-01-29
+
+### Changed
+- Replaced @types/bun with minimal custom bun-test.d.ts declarations
+- Added @types/node for Node.js type definitions
+
+### Security
+- Removed @types/bun which contributed 66 low-severity vulnerability warnings
+
 ## [0.3.3] - 2026-01-29
 
 ### Changed

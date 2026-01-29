@@ -9,7 +9,7 @@ import { cloneCommand } from "./clone-command.js";
 import { infoCommand } from "./info-command.js";
 import { listCommand } from "./list-command.js";
 
-const VERSION = "0.3.3";
+const VERSION = "0.3.4";
 
 export function showHelp(): void {
 	console.log(`ccs-cloner v${VERSION} - Clone Claude Code sessions with reduced context

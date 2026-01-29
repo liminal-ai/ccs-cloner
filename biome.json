@@ -74,7 +74,15 @@
 	"javascript": { "formatter": { "quoteStyle": "double" } },
 	"overrides": [
 		{
-			"includes": ["src/**/*.ts", "test/**/*.ts"],
+			"includes": ["src/types/bun-test.d.ts"],
+			"linter": {
+				"rules": {
+					"suspicious": { "noExplicitAny": "off" }
+				}
+			}
+		},
+		{
+			"includes": ["src/**/*.ts", "test/**/*.ts", "!src/types/bun-test.d.ts"],
 			"javascript": {
 				"globals": [
 					"Bun",
