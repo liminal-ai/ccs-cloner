@@ -25,7 +25,7 @@ describe("executeCloneOperation (integration)", () => {
     await rm(TEST_DIR, { recursive: true, force: true });
   });
 
-  test("clones a session end-to-end and writes output + todos + session-env + sessions-index", async () => {
+  test("clones a session end-to-end without tool removal", async () => {
     const sourceSessionId = "source-session-1";
     const sourcePath = join(PROJECT_DIR, `${sourceSessionId}.jsonl`);
 
@@ -98,5 +98,140 @@ describe("executeCloneOperation (integration)", () => {
     const index = await readSessionsIndex(PROJECT_DIR);
     expect(index).not.toBeNull();
     expect(index!.entries.some((e) => e.sessionId === result.clonedSessionId)).toBe(true);
+  });
+
+  test("clones a session with preset-based tool removal", async () => {
+    const sourceSessionId = "source-session-2";
+    const sourcePath = join(PROJECT_DIR, `${sourceSessionId}.jsonl`);
+
+    const fixture = await readFile(join(FIXTURES_DIR, "session-with-filterables.jsonl"), "utf-8");
+    await writeFile(sourcePath, fixture, "utf-8");
+
+    const result = await executeCloneOperation({
+      sourceSessionId,
+      claudeDataDirectory: CLAUDE_DIR,
+      toolRemovalConfig: {
+        preset: "default",
+      },
+    });
+
+    expect(result.operationSucceeded).toBe(true);
+    expect(result.sourceSessionId).toBe(sourceSessionId);
+
+    // Output file should exist
+    await stat(result.clonedSessionFilePath);
+
+    // Stats should be present
+    expect(result.operationStatistics.toolCallsRemoved).toBeDefined();
+    expect(result.operationStatistics.toolCallsTruncated).toBeDefined();
+    expect(result.operationStatistics.thinkingBlocksRemoved).toBeDefined();
+  });
+
+  test("clones a session with extreme preset (removes all tools)", async () => {
+    const sourceSessionId = "source-session-3";
+    const sourcePath = join(PROJECT_DIR, `${sourceSessionId}.jsonl`);
+
+    const fixture = await readFile(join(FIXTURES_DIR, "session-with-filterables.jsonl"), "utf-8");
+    await writeFile(sourcePath, fixture, "utf-8");
+
+    const result = await executeCloneOperation({
+      sourceSessionId,
+      claudeDataDirectory: CLAUDE_DIR,
+      toolRemovalConfig: {
+        preset: "extreme",
+      },
+    });
+
+    expect(result.operationSucceeded).toBe(true);
+
+    // With extreme preset (keep 0), all tool turns should be removed
+    // The exact count depends on the fixture
+    const outputContent = await readFile(result.clonedSessionFilePath, "utf-8");
+    const outputEntries = parseSessionContent(outputContent);
+
+    // Verify no tool_use blocks remain
+    for (const entry of outputEntries) {
+      if (Array.isArray(entry.message?.content)) {
+        const hasToolUse = entry.message.content.some(
+          (b) => (b as { type?: string }).type === "tool_use"
+        );
+        expect(hasToolUse).toBe(false);
+      }
+    }
+  });
+
+  test("clones a session with custom preset passed through options", async () => {
+    const sourceSessionId = "source-session-4";
+    const sourcePath = join(PROJECT_DIR, `${sourceSessionId}.jsonl`);
+
+    // Use the tool-edgecases fixture which has tool calls
+    const fixture = await readFile(
+      join(FIXTURES_DIR, "session-with-tool-edgecases.jsonl"),
+      "utf-8"
+    );
+    await writeFile(sourcePath, fixture, "utf-8");
+
+    // Define a custom preset and use it
+    const customPresets = {
+      "my-custom": { name: "my-custom", keepTurnsWithTools: 0, truncatePercent: 0 },
+    };
+
+    const result = await executeCloneOperation({
+      sourceSessionId,
+      claudeDataDirectory: CLAUDE_DIR,
+      toolRemovalConfig: {
+        preset: "my-custom",
+      },
+      customPresets,
+    });
+
+    expect(result.operationSucceeded).toBe(true);
+
+    // Custom preset with keep=0 should remove all tool calls
+    const outputContent = await readFile(result.clonedSessionFilePath, "utf-8");
+    const outputEntries = parseSessionContent(outputContent);
+
+    // Verify no tool_use blocks remain (custom preset removes all)
+    for (const entry of outputEntries) {
+      if (Array.isArray(entry.message?.content)) {
+        const hasToolUse = entry.message.content.some(
+          (b) => (b as { type?: string }).type === "tool_use"
+        );
+        expect(hasToolUse).toBe(false);
+      }
+    }
+
+    // Verify thinking blocks are removed when tools are processed
+    for (const entry of outputEntries) {
+      if (Array.isArray(entry.message?.content)) {
+        const hasThinking = entry.message.content.some(
+          (b) => (b as { type?: string }).type === "thinking"
+        );
+        expect(hasThinking).toBe(false);
+      }
+    }
+  });
+
+  test("fails when using unknown preset without custom presets", async () => {
+    const sourceSessionId = "source-session-5";
+    const sourcePath = join(PROJECT_DIR, `${sourceSessionId}.jsonl`);
+
+    const fixture = await readFile(
+      join(FIXTURES_DIR, "session-with-tool-edgecases.jsonl"),
+      "utf-8"
+    );
+    await writeFile(sourcePath, fixture, "utf-8");
+
+    // Attempt to use a non-existent preset without defining it
+    await expect(
+      executeCloneOperation({
+        sourceSessionId,
+        claudeDataDirectory: CLAUDE_DIR,
+        toolRemovalConfig: {
+          preset: "nonexistent-preset",
+        },
+        // No customPresets provided
+      })
+    ).rejects.toThrow("Unknown preset: nonexistent-preset");
   });
 });

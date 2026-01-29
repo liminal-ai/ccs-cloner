@@ -9,12 +9,13 @@ import { executeCloneOperation } from "../core/clone-operation-executor.js";
 import { loadConfiguration } from "../config/configuration-loader.js";
 import { formatCloneResult, formatError } from "../output/clone-result-formatter.js";
 import { ArgumentValidationError } from "../errors/clone-operation-errors.js";
+import { isValidPresetName, listAvailablePresets } from "../config/tool-removal-presets.js";
 import type { CloneOperationOptions, ToolRemovalOptions } from "../types/index.js";
 
 export const cloneCommand = defineCommand({
   meta: {
     name: "clone",
-    description: "Clone a session with optional modifications",
+    description: "Clone session with tool/thinking removal for context reduction",
   },
 
   args: {
@@ -26,12 +27,7 @@ export const cloneCommand = defineCommand({
     "strip-tools": {
       type: "string",
       description:
-        "Remove tools from first N% of turns (default: 80). Use --strip-tools or --strip-tools=N",
-    },
-    "truncate-remaining": {
-      type: "boolean",
-      description: "Truncate tools that weren't removed",
-      default: false,
+        "Remove tools using preset (default|aggressive|extreme). Use --strip-tools for default preset.",
     },
     output: {
       type: "string",
@@ -68,45 +64,32 @@ export const cloneCommand = defineCommand({
       let toolRemovalConfig: ToolRemovalOptions | undefined;
       const stripToolsArg = args["strip-tools"];
 
-      // Check validation: --truncate-remaining requires --strip-tools
-      if (args["truncate-remaining"] && stripToolsArg === undefined) {
-        throw new ArgumentValidationError(
-          "--truncate-remaining",
-          "--truncate-remaining requires --strip-tools"
-        );
-      }
-
       if (stripToolsArg !== undefined) {
-        // Parse the strip-tools value
-        let percentage = config.defaultToolRemovalPercentage;
+        let presetName: string;
 
         if (stripToolsArg === "" || stripToolsArg === "true") {
-          // --strip-tools without value: use default (80)
-          percentage = config.defaultToolRemovalPercentage;
+          // --strip-tools without value -> use default preset from config
+          presetName = config.defaultPreset;
+        } else if (isValidPresetName(stripToolsArg, config.customPresets)) {
+          // --strip-tools=aggressive -> use named preset
+          presetName = stripToolsArg;
         } else {
-          // --strip-tools=N: parse the number
-          const parsed = parseInt(stripToolsArg, 10);
-          if (isNaN(parsed) || parsed < 0 || parsed > 100) {
-            throw new ArgumentValidationError(
-              "--strip-tools",
-              "Must be a number between 0 and 100"
-            );
-          }
-          percentage = parsed;
+          // Unknown preset name
+          const available = listAvailablePresets(config.customPresets);
+          throw new ArgumentValidationError(
+            "--strip-tools",
+            `Unknown preset: ${stripToolsArg}. Available: ${available.join(", ")}`
+          );
         }
 
-        toolRemovalConfig = {
-          toolRemovalPercentage: percentage,
-          truncateRemainingTools: args["truncate-remaining"] ?? false,
-          // Always remove all thinking when tools are touched
-          thinkingRemovalPercentage: percentage > 0 ? 100 : 0,
-        };
+        toolRemovalConfig = { preset: presetName };
       }
 
       // Build clone options
       const options: CloneOperationOptions = {
         sourceSessionId: args.sessionId,
         toolRemovalConfig,
+        customPresets: config.customPresets,
         outputPathOverride: args.output,
         claudeDataDirectory: config.claudeDataDirectory,
       };

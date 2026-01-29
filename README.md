@@ -9,8 +9,8 @@ Claude Code sessions accumulate context over time: tool calls with large inputs/
 ccs-cloner creates a lean copy of a session by:
 
 1. Extracting only the active conversation branch (discarding orphaned rollback branches)
-2. Removing tool calls from early turns where detailed results no longer matter
-3. Optionally truncating remaining tool content instead of full removal
+2. Removing tool calls from old turns while preserving recent ones
+3. Truncating tool content in intermediate turns for gradual context reduction
 4. Automatically removing thinking blocks when tools are modified
 
 The cloned session appears in `claude --resume` and can be continued with reduced context.
@@ -18,15 +18,16 @@ The cloned session appears in `claude --resume` and can be continued with reduce
 ## Installation
 
 ```bash
-# Clone and build from source
+# Install globally via npm
+npm install -g ccs-cloner
+
+# Or via bun
+bun add -g ccs-cloner
+
+# Or build from source
 git clone https://github.com/liminal-ai/ccs-cloner.git
 cd ccs-cloner
-bun install
-bun link
-
-# Or install from npm (when published)
-# bun add -g ccs-cloner
-# npm install -g ccs-cloner
+bun install && bun link
 ```
 
 Requires Bun 1.0+ or Node.js 20+.
@@ -37,18 +38,54 @@ Requires Bun 1.0+ or Node.js 20+.
 # List recent sessions to find the session ID
 ccs-cloner list
 
-# Clone a session with default 80% tool removal
+# Clone with default preset (keep 20 tool-turns)
 ccs-cloner clone abc123 --strip-tools
 
-# Clone with higher removal for very long sessions
-ccs-cloner clone abc123 --strip-tools=95
+# Clone with aggressive preset (keep 10 tool-turns)
+ccs-cloner clone abc123 --strip-tools=aggressive
 
-# Clone and truncate (not remove) the remaining 20% of tools
-ccs-cloner clone abc123 --strip-tools --truncate-remaining
+# Clone with extreme preset (remove all tools)
+ccs-cloner clone abc123 --strip-tools=extreme
 
 # Get detailed info about a session before cloning
 ccs-cloner info abc123
 ```
+
+## Presets
+
+Tool removal uses presets that define how many "turns with tools" to keep and how many of those to truncate.
+
+| Preset | Keep | Truncate | Behavior |
+|--------|------|----------|----------|
+| `default` | 20 turns | 50% | 10 truncated, 10 full fidelity |
+| `aggressive` | 10 turns | 50% | 5 truncated, 5 full fidelity |
+| `extreme` | 0 | - | All tools removed |
+
+### How Presets Work
+
+Tool removal targets **turns that have tool calls**, not all turns. This ensures consistent behavior across multiple clones of the same session.
+
+Of the kept turns:
+- **Oldest portion** (truncate %) -> tool content reduced to ~2 lines
+- **Newest portion** -> full fidelity preserved
+
+This provides graceful degradation: recent tool context is preserved exactly, older tool context is summarized, and ancient tool context is removed entirely.
+
+### Custom Presets
+
+Define in `ccs-cloner.config.ts`:
+
+```typescript
+export default {
+  customPresets: {
+    minimal: { name: "minimal", keepTurnsWithTools: 5, truncatePercent: 80 },
+    thorough: { name: "thorough", keepTurnsWithTools: 30, truncatePercent: 30 },
+  },
+  defaultPreset: "minimal",  // Use custom preset as default
+};
+```
+
+Use with: `ccs-cloner clone abc123 --strip-tools=minimal`
 
 ## Commands
 
@@ -68,9 +105,8 @@ ccs-cloner clone <sessionId> [options]
 
 | Flag | Description |
 |------|-------------|
-| `--strip-tools` | Remove tools from first 80% of turns |
-| `--strip-tools=N` | Remove tools from first N% of turns (0-100) |
-| `--truncate-remaining` | Truncate tool content in turns not fully stripped. Reduces tool inputs/outputs to 2 lines or 120 chars. Requires `--strip-tools` |
+| `--strip-tools` | Remove tools using default preset |
+| `--strip-tools=<preset>` | Remove tools using named preset (default, aggressive, extreme, or custom) |
 | `--output, -o <path>` | Output path (default: auto-generated in same project directory) |
 | `--claude-dir <path>` | Claude data directory (default: `~/.claude`) |
 | `--json` | Output result as JSON |
@@ -79,14 +115,14 @@ ccs-cloner clone <sessionId> [options]
 **Examples:**
 
 ```bash
-# Default: remove tools from 80% of turns
+# Default preset: keep 20 tool-turns
 ccs-cloner clone abc-123-def --strip-tools
 
-# Aggressive: remove from 95% of turns
-ccs-cloner clone abc-123-def --strip-tools=95
+# Aggressive: keep only 10 tool-turns
+ccs-cloner clone abc-123-def --strip-tools=aggressive
 
-# Moderate removal + truncation of remaining tools
-ccs-cloner clone abc-123-def --strip-tools=60 --truncate-remaining
+# Extreme: remove all tools
+ccs-cloner clone abc-123-def --strip-tools=extreme
 
 # Custom output location
 ccs-cloner clone abc-123-def --strip-tools -o ./backup.jsonl
@@ -169,8 +205,13 @@ const config: UserConfiguration = {
   // Override Claude data directory
   claudeDataDirectory: "/custom/path/to/.claude",
 
-  // Default percentage when --strip-tools has no value (default: 80)
-  defaultToolRemovalPercentage: 80,
+  // Default preset when --strip-tools has no value
+  defaultPreset: "default",
+
+  // Custom presets
+  customPresets: {
+    minimal: { name: "minimal", keepTurnsWithTools: 5, truncatePercent: 80 },
+  },
 
   // Default output format: "human" or "json"
   outputFormat: "human",
@@ -215,19 +256,20 @@ Claude Code sessions are stored as JSONL files with a tree structure using `uuid
 
 ccs-cloner walks the `parentUuid` chain from the leaf node (identified via `summary.leafUuid` or latest timestamp) back to the root, keeping only entries in the active conversation path. Orphaned branches are discarded.
 
-### Tool Removal Zones
+### Tool Removal Algorithm
 
-Tool removal operates on "turns" (user message + assistant response pairs). With `--strip-tools=80`:
+Tool removal uses a "keep last N turns-with-tools" model:
 
-1. Calculate 80% of total turns
-2. In the first 80% of turns: completely remove all `tool_use` and `tool_result` blocks
-3. In the remaining 20%: tools are preserved (or truncated if `--truncate-remaining`)
+1. **Identify**: Find all turns that contain tool calls
+2. **Keep**: Preserve the last N of those turns
+3. **Truncate**: Of kept turns, truncate the oldest X%
+4. **Remove**: Remove tools from everything else
 
-The percentage calculation uses `Math.max(1, Math.floor(...))` to ensure at least one turn is affected when percentage > 0.
+This ensures consistent behavior across multiple clones. Unlike percentage-based removal, this algorithm doesn't degrade over repeated clones.
 
 ### Thinking Block Removal
 
-When any tools are removed (`--strip-tools` with percentage > 0), all thinking blocks are automatically removed from the entire session. This is because thinking blocks often reference tool results that may no longer exist.
+When `--strip-tools` is used on a session containing tools, all thinking blocks are automatically removed from the entire session. This is because thinking blocks often reference tool results that may no longer exist.
 
 ### Session Index Update
 
@@ -252,20 +294,38 @@ import {
   parseSessionFile,
   extractActiveBranchFromSession,
   removeToolCallsFromHistory,
+  BUILT_IN_PRESETS,
+  resolveToolRemovalOptions,
 } from "ccs-cloner";
 
-// Clone a session programmatically
+// Clone a session with default preset
 const result = await executeCloneOperation({
   sourceSessionId: "abc-123-def",
   toolRemovalConfig: {
-    toolRemovalPercentage: 80,
-    truncateRemainingTools: true,
-    thinkingRemovalPercentage: 100,
+    preset: "default",
   },
 });
 
 console.log(result.clonedSessionId);
 console.log(result.operationStatistics);
+
+// Clone with aggressive preset
+const aggressiveResult = await executeCloneOperation({
+  sourceSessionId: "abc-123-def",
+  toolRemovalConfig: {
+    preset: "aggressive",
+  },
+});
+
+// Clone with custom values (override preset)
+const customResult = await executeCloneOperation({
+  sourceSessionId: "abc-123-def",
+  toolRemovalConfig: {
+    preset: "default",
+    keepTurnsWithTools: 15,  // override preset value
+    truncatePercent: 75,      // override preset value
+  },
+});
 
 // List all projects
 const projects = await listAllProjects();
@@ -281,13 +341,12 @@ const { entries } = await parseSessionFile(sessionPath);
 const activeBranch = extractActiveBranchFromSession(entries);
 console.log(activeBranch.extractionStatistics.orphanedEntriesDiscarded);
 
-// Remove tools from entries
-const removalResult = removeToolCallsFromHistory(activeBranch.entriesInActiveChain, {
-  toolRemovalPercentage: 80,
-  truncateRemainingTools: false,
-  thinkingRemovalPercentage: 100,
-});
-console.log(removalResult.statistics.toolCallsRemoved);
+// Remove tools from entries directly
+const resolved = resolveToolRemovalOptions({ preset: "default" });
+const removalResult = removeToolCallsFromHistory(activeBranch.entriesInActiveChain, resolved);
+console.log(removalResult.statistics.turnsWithToolsRemoved);
+console.log(removalResult.statistics.turnsWithToolsTruncated);
+console.log(removalResult.statistics.turnsWithToolsPreserved);
 ```
 
 ### Exported Functions
@@ -301,6 +360,14 @@ console.log(removalResult.statistics.toolCallsRemoved);
 - `repairBrokenParentReferences(entries)` - Fix parent chain after filtering
 - `identifyTurnBoundaries(entries)` - Calculate turn boundaries
 - `countTurns(entries)` - Count turns in session
+
+**Preset System:**
+
+- `BUILT_IN_PRESETS` - Built-in preset definitions
+- `resolvePreset(name, customPresets?)` - Resolve preset by name
+- `resolveToolRemovalOptions(options, customPresets?)` - Resolve to concrete values
+- `isValidPresetName(name, customPresets?)` - Check if preset exists
+- `listAvailablePresets(customPresets?)` - List all preset names
 
 **IO Operations:**
 
@@ -335,6 +402,9 @@ import type {
   CloneOperationStatistics,
   ToolRemovalOptions,
   ToolRemovalResult,
+  ToolRemovalStatistics,
+  ToolRemovalPreset,
+  ResolvedToolRemovalOptions,
 
   // Branch types
   ActiveBranchChain,
@@ -375,9 +445,9 @@ src/
   cli.ts                 # CLI entry point
   index.ts               # SDK exports
   commands/              # CLI command definitions
+  config/                # Configuration and presets
   core/                  # Core logic (extraction, removal, etc.)
   io/                    # File system operations
-  config/                # Configuration loading
   output/                # Output formatting
   types/                 # TypeScript type definitions
   errors/                # Custom error classes

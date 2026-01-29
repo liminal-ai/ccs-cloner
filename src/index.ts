@@ -7,13 +7,11 @@
  * ```typescript
  * import { executeCloneOperation, listAllProjects, findSessionFileById } from 'ccs-cloner';
  *
- * // Clone a session with 80% tool removal
+ * // Clone a session with default preset (keep 20 tool-turns)
  * const result = await executeCloneOperation({
  *   sourceSessionId: 'abc-123',
  *   toolRemovalConfig: {
- *     toolRemovalPercentage: 80,
- *     truncateRemainingTools: true,
- *     thinkingRemovalPercentage: 100,
+ *     preset: 'default',
  *   },
  * });
  * console.log(result.clonedSessionId);
@@ -69,6 +67,15 @@ export {
 export { loadConfiguration } from "./config/configuration-loader.js";
 export { getDefaultClaudeDir } from "./config/default-configuration.js";
 
+// Preset system
+export {
+  BUILT_IN_PRESETS,
+  isValidPresetName,
+  resolvePreset,
+  resolveToolRemovalOptions,
+  listAvailablePresets,
+} from "./config/tool-removal-presets.js";
+
 // Errors
 export {
   CcsError,
@@ -100,6 +107,7 @@ export type {
 
   // Tool removal types
   TurnBoundary,
+  ToolRemovalPreset,
   ToolRemovalOptions,
   ResolvedToolRemovalOptions,
   ToolRemovalResult,

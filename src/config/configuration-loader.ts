@@ -6,9 +6,15 @@
  */
 
 import { loadConfig } from "c12";
-import type { ResolvedConfiguration, UserConfiguration, CliConfiguration } from "../types/index.js";
+import type {
+  ResolvedConfiguration,
+  UserConfiguration,
+  CliConfiguration,
+  ToolRemovalPreset,
+} from "../types/index.js";
 import { getDefaultConfiguration, readEnvironmentConfiguration } from "./default-configuration.js";
 import { safeValidateConfiguration } from "./configuration-schema.js";
+import { isValidPresetName } from "./tool-removal-presets.js";
 
 /**
  * Result from c12 config loading.
@@ -69,14 +75,29 @@ export async function loadConfiguration(
   // Load environment config
   const envConfig = readEnvironmentConfiguration();
 
+  // Merge custom presets (only from config file, not env/cli)
+  const customPresets: Record<string, ToolRemovalPreset> = {
+    ...defaults.customPresets,
+    ...fileConfig.customPresets,
+  };
+
+  // Validate defaultPreset if specified in config file
+  if (fileConfig.defaultPreset && !isValidPresetName(fileConfig.defaultPreset, customPresets)) {
+    throw new Error(
+      `Invalid defaultPreset "${fileConfig.defaultPreset}" in configuration. ` +
+        `Preset must be a built-in preset (default, aggressive, extreme) or defined in customPresets.`
+    );
+  }
+
   // Merge in order of precedence (later overrides earlier)
   const merged: ResolvedConfiguration = {
     ...defaults,
+    customPresets,
     ...(fileConfig.claudeDataDirectory && {
       claudeDataDirectory: fileConfig.claudeDataDirectory,
     }),
-    ...(fileConfig.defaultToolRemovalPercentage !== undefined && {
-      defaultToolRemovalPercentage: fileConfig.defaultToolRemovalPercentage,
+    ...(fileConfig.defaultPreset && {
+      defaultPreset: fileConfig.defaultPreset,
     }),
     ...(fileConfig.outputFormat && { outputFormat: fileConfig.outputFormat }),
     ...(fileConfig.verboseOutput !== undefined && {

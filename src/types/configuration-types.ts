@@ -2,14 +2,18 @@
  * Type definitions for configuration.
  */
 
+import type { ToolRemovalPreset } from "./tool-removal-types.js";
+
 /**
  * User configuration that can be set via config file.
  */
 export interface UserConfiguration {
   /** Claude data directory (default: ~/.claude) */
   claudeDataDirectory?: string;
-  /** Default percentage of tools to remove (default: 80) */
-  defaultToolRemovalPercentage?: number;
+  /** Default preset name for tool removal (default: "default") */
+  defaultPreset?: string;
+  /** Custom tool removal presets */
+  customPresets?: Record<string, ToolRemovalPreset>;
   /** Output format: human-readable or JSON */
   outputFormat?: "human" | "json";
   /** Enable verbose output */
@@ -48,8 +52,10 @@ export interface CliConfiguration {
 export interface ResolvedConfiguration {
   /** Claude data directory */
   claudeDataDirectory: string;
-  /** Default percentage of tools to remove */
-  defaultToolRemovalPercentage: number;
+  /** Default preset name for tool removal */
+  defaultPreset: string;
+  /** Custom tool removal presets */
+  customPresets: Record<string, ToolRemovalPreset>;
   /** Output format */
   outputFormat: "human" | "json";
   /** Verbose output enabled */
@@ -61,7 +67,8 @@ export interface ResolvedConfiguration {
  */
 export const DEFAULT_CONFIGURATION: ResolvedConfiguration = {
   claudeDataDirectory: "", // Will be resolved to ~/.claude at runtime
-  defaultToolRemovalPercentage: 80,
+  defaultPreset: "default",
+  customPresets: {},
   outputFormat: "human",
   verboseOutput: false,
 };

@@ -7,13 +7,24 @@
 import { z } from "zod";
 
 /**
+ * Schema for a tool removal preset.
+ */
+export const toolRemovalPresetSchema = z.object({
+  name: z.string(),
+  keepTurnsWithTools: z.number().min(0),
+  truncatePercent: z.number().min(0).max(100),
+});
+
+/**
  * Schema for user configuration file.
  */
 export const userConfigurationSchema = z.object({
   /** Claude data directory (default: ~/.claude) */
   claudeDataDirectory: z.string().optional(),
-  /** Default percentage of tools to remove (default: 80) */
-  defaultToolRemovalPercentage: z.number().min(0).max(100).optional(),
+  /** Default preset name for tool removal (default: "default") */
+  defaultPreset: z.string().optional(),
+  /** Custom tool removal presets */
+  customPresets: z.record(z.string(), toolRemovalPresetSchema).optional(),
   /** Output format: human-readable or JSON */
   outputFormat: z.enum(["human", "json"]).optional(),
   /** Enable verbose output */

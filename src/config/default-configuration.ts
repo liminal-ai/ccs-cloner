@@ -61,7 +61,8 @@ export function readEnvironmentConfiguration(): EnvironmentConfiguration {
 export function getDefaultConfiguration(): ResolvedConfiguration {
   return {
     claudeDataDirectory: getDefaultClaudeDir(),
-    defaultToolRemovalPercentage: 80,
+    defaultPreset: "default",
+    customPresets: {},
     outputFormat: "human",
     verboseOutput: false,
   };

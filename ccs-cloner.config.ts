@@ -18,9 +18,16 @@ const config: UserConfiguration = {
   // Override Claude data directory (default: ~/.claude)
   // claudeDataDirectory: "/custom/path/to/.claude",
 
-  // Default percentage of tools to remove when --strip-tools is used without a value
-  // (default: 80)
-  defaultToolRemovalPercentage: 80,
+  // Default preset name for tool removal when --strip-tools is used without a value
+  // Built-in presets: "default", "aggressive", "extreme"
+  // (default: "default")
+  defaultPreset: "default",
+
+  // Custom tool removal presets
+  // customPresets: {
+  //   minimal: { name: "minimal", keepTurnsWithTools: 5, truncatePercent: 80 },
+  //   thorough: { name: "thorough", keepTurnsWithTools: 30, truncatePercent: 30 },
+  // },
 
   // Default output format: "human" or "json"
   // (default: "human")

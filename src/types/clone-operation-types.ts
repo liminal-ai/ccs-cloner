@@ -2,7 +2,7 @@
  * Type definitions for clone operations.
  */
 
-import type { ToolRemovalOptions } from "./tool-removal-types.js";
+import type { ToolRemovalOptions, ToolRemovalPreset } from "./tool-removal-types.js";
 
 /**
  * Options for a clone operation.
@@ -12,6 +12,8 @@ export interface CloneOperationOptions {
   sourceSessionId: string;
   /** Tool removal configuration (if any) */
   toolRemovalConfig?: ToolRemovalOptions;
+  /** Custom tool removal presets from configuration */
+  customPresets?: Record<string, ToolRemovalPreset>;
   /** Custom output path (if not in default location) */
   outputPathOverride?: string;
   /** Claude data directory override */

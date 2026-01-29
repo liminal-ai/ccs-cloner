@@ -1,5 +1,9 @@
 /**
  * Type definitions for tool and thinking block removal.
+ *
+ * The tool removal model uses presets that define:
+ * - How many turns-with-tools to keep (newest)
+ * - What percentage of kept turns to truncate (oldest portion of kept)
  */
 
 import type { SessionLineItem } from "./session-line-item-types.js";
@@ -18,43 +22,59 @@ export interface TurnBoundary {
 }
 
 /**
- * Options for tool removal operations.
+ * A preset defines tool removal behavior.
  */
-export interface ToolRemovalOptions {
-  /** Percentage of turns from which to remove tools (0-100) */
-  toolRemovalPercentage: number;
-  /** Whether to truncate tools that aren't removed */
-  truncateRemainingTools: boolean;
-  /** Percentage of turns from which to remove thinking blocks (0-100) */
-  thinkingRemovalPercentage: number;
+export interface ToolRemovalPreset {
+  /** Name of the preset */
+  name: string;
+  /** How many turns-with-tools to keep (newest first) */
+  keepTurnsWithTools: number;
+  /** Percentage of kept turns to truncate (oldest portion of kept, 0-100) */
+  truncatePercent: number;
 }
 
 /**
- * Resolved tool removal options with defaults applied.
+ * Options for tool removal operations.
+ * Can specify a preset name, or override individual values.
+ */
+export interface ToolRemovalOptions {
+  /** Preset name to use (default: "default") */
+  preset?: string;
+  /** Override: how many turns-with-tools to keep */
+  keepTurnsWithTools?: number;
+  /** Override: percentage of kept turns to truncate */
+  truncatePercent?: number;
+}
+
+/**
+ * Resolved tool removal options with all values specified.
+ * This is what the algorithm actually uses.
  */
 export interface ResolvedToolRemovalOptions {
-  /** Percentage of turns from which to remove tools (0-100) */
-  toolRemovalPercentage: number;
-  /** Whether to truncate tools that aren't removed */
-  truncateRemainingTools: boolean;
-  /** Percentage of turns from which to remove thinking blocks (always 100 when tools touched) */
-  thinkingRemovalPercentage: number;
+  /** How many turns-with-tools to keep (newest first) */
+  keepTurnsWithTools: number;
+  /** Percentage of kept turns to truncate (oldest portion of kept, 0-100) */
+  truncatePercent: number;
 }
 
 /**
  * Statistics from tool removal operations.
  */
 export interface ToolRemovalStatistics {
-  /** Number of tool_use blocks completely removed */
+  /** Total number of turns that had tool calls */
+  turnsWithToolsTotal: number;
+  /** Number of turns with tools fully removed */
+  turnsWithToolsRemoved: number;
+  /** Number of turns with tools truncated */
+  turnsWithToolsTruncated: number;
+  /** Number of turns with tools preserved at full fidelity */
+  turnsWithToolsPreserved: number;
+  /** Number of individual tool_use blocks removed */
   toolCallsRemoved: number;
-  /** Number of tool_use/tool_result blocks truncated */
+  /** Number of individual tool_use/tool_result blocks truncated */
   toolCallsTruncated: number;
   /** Number of thinking blocks removed */
   thinkingBlocksRemoved: number;
-  /** Total number of turns in the session */
-  totalTurns: number;
-  /** Number of turns affected by removal */
-  turnsAffected: number;
 }
 
 /**

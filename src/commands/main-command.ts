@@ -9,19 +9,73 @@ import { cloneCommand } from "./clone-command.js";
 import { listCommand } from "./list-command.js";
 import { infoCommand } from "./info-command.js";
 
-const VERSION = "0.2.0";
+const VERSION = "0.3.0";
+
+export function showHelp(): void {
+  console.log(`ccs-cloner v${VERSION} - Clone Claude Code sessions with reduced context
+
+USAGE
+  ccs-cloner <command> [options]
+
+COMMANDS
+  clone <id>   Clone session with modifications
+  list         List sessions
+  info <id>    Show session details
+
+PRESETS (for --strip-tools)
+  default      Keep 20 tool-turns: 10 truncated, 10 full fidelity
+  aggressive   Keep 10 tool-turns: 5 truncated, 5 full fidelity
+  extreme      Remove all tools
+
+HOW IT WORKS
+  Tool removal targets "turns with tools" (not all turns).
+  Of kept turns, oldest portion is truncated, newest is full fidelity.
+  This ensures consistent behavior across multiple clones.
+
+CUSTOM PRESETS
+  Define in ccs-cloner.config.ts:
+    customPresets: {
+      minimal: { name: "minimal", keepTurnsWithTools: 5, truncatePercent: 80 }
+    }
+
+OUTPUT OPTIONS
+  --json       JSON output (for agents)
+  -v           Verbose output
+
+GLOBAL OPTIONS
+  --help, -h       Show help
+  --quickstart     Show minimal quickstart guide
+  --version        Show version
+
+ENVIRONMENT
+  CCS_CLONER_CLAUDE_DIR      Claude data directory (default: ~/.claude)
+  CCS_CLONER_OUTPUT_FORMAT   "human" or "json"
+  CCS_CLONER_VERBOSE         true/false
+
+Run "ccs-cloner <command> --help" for command-specific options.`);
+}
 
 export const mainCommand = defineCommand({
   meta: {
     name: "ccs-cloner",
     version: VERSION,
-    description: "Clone and modify Claude Code sessions",
+    description: "Clone Claude Code sessions with reduced context for continuation",
   },
 
   args: {
+    help: {
+      type: "boolean",
+      alias: "h",
+      description: "Show help",
+    },
     version: {
       type: "boolean",
       description: "Show version",
+    },
+    quickstart: {
+      type: "boolean",
+      alias: "qs",
+      description: "Show quickstart guide",
     },
   },
 
@@ -37,38 +91,40 @@ export const mainCommand = defineCommand({
       process.exit(0);
     }
 
-    // Show help by default (citty handles this)
-    console.log(`ccs-cloner v${VERSION} - Clone and modify Claude Code sessions
+    if (args.help) {
+      // Comprehensive help (intercept before citty's default)
+      showHelp();
+      process.exit(0);
+    }
 
-Usage: ccs-cloner <command> [options]
+    if (args.quickstart) {
+      // Minimal, high-signal quickstart for agents (~250 tokens)
+      console.log(`ccs-cloner v${VERSION} - Clone Claude Code sessions with reduced context
 
-Commands:
-  clone    Clone a session with optional modifications
-  list     List sessions
-  info     Show session details
+WHEN TO USE
+  Session hitting context limits? Clone it with tools stripped.
 
-Global Options:
-  --help, -h     Show help
-  --version      Show version
+PRESETS
+  --strip-tools            default: keep 20 tool-turns (10 truncated, 10 full)
+  --strip-tools=aggressive keep 10 tool-turns (5 truncated, 5 full)
+  --strip-tools=extreme    remove all tools
 
-Examples:
-  # Clone a session with 80% tool removal (default)
-  ccs-cloner clone abc123 --strip-tools
+COMMANDS
+  ccs-cloner list                     # Find session IDs
+  ccs-cloner info <id>                # Check size before cloning
+  ccs-cloner clone <id> --strip-tools # Clone with default preset
 
-  # Clone with custom tool removal percentage
-  ccs-cloner clone abc123 --strip-tools=95
+WHAT HAPPENS
+  - Extracts active branch only (discards rollback orphans)
+  - Removes/truncates tool calls based on preset
+  - Registers new session in Claude Code
 
-  # Clone and truncate remaining tools
-  ccs-cloner clone abc123 --strip-tools --truncate-remaining
+Run "ccs-cloner --help" for full options and custom presets.`);
+      process.exit(0);
+    }
 
-  # List recent sessions
-  ccs-cloner list
-
-  # Show session info
-  ccs-cloner info abc123
-
-Run "ccs-cloner <command> --help" for command-specific help.`);
-
+    // Default: show comprehensive help
+    showHelp();
     process.exit(0);
   },
 });

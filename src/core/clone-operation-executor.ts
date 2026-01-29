@@ -46,6 +46,7 @@ import {
 } from "../io/session-file-writer.js";
 import { addSessionToIndex } from "../io/session-index-updater.js";
 import { getDefaultClaudeDir } from "../config/default-configuration.js";
+import { resolveToolRemovalOptions } from "../config/tool-removal-presets.js";
 
 /**
  * Execute a complete clone operation.
@@ -81,12 +82,11 @@ export async function executeCloneOperation(
   let thinkingBlocksRemoved = 0;
 
   if (options.toolRemovalConfig) {
-    const removalOptions: ResolvedToolRemovalOptions = {
-      toolRemovalPercentage: options.toolRemovalConfig.toolRemovalPercentage,
-      truncateRemainingTools: options.toolRemovalConfig.truncateRemainingTools,
-      // Always remove all thinking when tools are touched
-      thinkingRemovalPercentage: options.toolRemovalConfig.toolRemovalPercentage > 0 ? 100 : 0,
-    };
+    // Resolve options using preset system, including custom presets
+    const removalOptions: ResolvedToolRemovalOptions = resolveToolRemovalOptions(
+      options.toolRemovalConfig,
+      options.customPresets
+    );
 
     const removalResult = removeToolCallsFromHistory(entries, removalOptions);
     entries = removalResult.processedEntries;

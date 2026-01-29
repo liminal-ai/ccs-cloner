@@ -28,6 +28,7 @@ export type {
 // Tool removal types
 export type {
   TurnBoundary,
+  ToolRemovalPreset,
   ToolRemovalOptions,
   ResolvedToolRemovalOptions,
   ToolRemovalStatistics,
