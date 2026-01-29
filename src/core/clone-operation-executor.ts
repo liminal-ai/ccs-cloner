@@ -23,7 +23,8 @@ import type {
   ResolvedToolRemovalOptions,
 } from "../types/index.js";
 
-import { extractActiveBranchFromSession, findSummaryLeafUuid } from "./active-branch-extractor.js";
+// DISABLED: Active branch extraction causes issues with cross-file parent references
+// import { extractActiveBranchFromSession, findSummaryLeafUuid } from "./active-branch-extractor.js";
 import { filterCloneableEntries } from "./session-line-item-filter.js";
 import { removeToolCallsFromHistory } from "./tool-call-remover.js";
 import { repairBrokenParentReferences } from "./parent-chain-repairer.js";
@@ -65,11 +66,13 @@ export async function executeCloneOperation(
   const originalSize = Buffer.byteLength(rawContent, "utf-8");
   const originalTurnCount = countTurns(allEntries);
 
-  // 2. Extract active branch (NEW: discard orphaned branches)
-  const summaryLeafUuid = findSummaryLeafUuid(allEntries);
-  const activeBranch = extractActiveBranchFromSession(allEntries, summaryLeafUuid);
-  let entries = activeBranch.entriesInActiveChain;
-  const orphanedCount = activeBranch.extractionStatistics.orphanedEntriesDiscarded;
+  // 2. Extract active branch (DISABLED - causes issues with cross-file parent references)
+  // const summaryLeafUuid = findSummaryLeafUuid(allEntries);
+  // const activeBranch = extractActiveBranchFromSession(allEntries, summaryLeafUuid);
+  // let entries = activeBranch.entriesInActiveChain;
+  // const orphanedCount = activeBranch.extractionStatistics.orphanedEntriesDiscarded;
+  let entries = allEntries;
+  const orphanedCount = 0;
 
   // 3. Filter cloneable entries
   const filterResult = filterCloneableEntries(entries);

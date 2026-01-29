@@ -78,8 +78,9 @@ describe("executeCloneOperation (integration)", () => {
     expect(validateParentChain(outputEntries)).toEqual([]);
 
     // Stats reflect what this fixture triggers
-    expect(result.operationStatistics.entriesFiltered).toBe(3);
-    expect(result.operationStatistics.orphanedEntriesDiscarded).toBe(1);
+    // (active branch extraction disabled, so orphans=0, all removals counted as filtered)
+    expect(result.operationStatistics.entriesFiltered).toBe(4);
+    expect(result.operationStatistics.orphanedEntriesDiscarded).toBe(0);
     expect(result.operationStatistics.turnCountOriginal).toBe(1);
     expect(result.operationStatistics.turnCountOutput).toBe(1);
 

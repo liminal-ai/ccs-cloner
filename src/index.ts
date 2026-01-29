@@ -26,7 +26,7 @@
 
 // Core operations
 export { executeCloneOperation } from "./core/clone-operation-executor.js";
-export { extractActiveBranchFromSession } from "./core/active-branch-extractor.js";
+// extractActiveBranchFromSession disabled - being evaluated for fixing or removal
 export { filterCloneableEntries } from "./core/session-line-item-filter.js";
 export { removeToolCallsFromHistory } from "./core/tool-call-remover.js";
 export { repairBrokenParentReferences } from "./core/parent-chain-repairer.js";
@@ -99,11 +99,6 @@ export type {
   ConversationMessage,
   SessionIndexEntry,
   SessionsIndex,
-
-  // Active branch types
-  ActiveBranchChain,
-  UuidGraphNode,
-  UuidGraph,
 
   // Tool removal types
   TurnBoundary,

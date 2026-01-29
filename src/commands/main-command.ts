@@ -14,6 +14,8 @@ const VERSION = "0.3.1";
 export function showHelp(): void {
   console.log(`ccs-cloner v${VERSION} - Clone Claude Code sessions with reduced context
 
+TIP: Configure Claude Code to show session ID in status line for easy access.
+
 USAGE
   ccs-cloner <command> [options]
 
@@ -40,7 +42,12 @@ CUSTOM PRESETS
 
 OUTPUT OPTIONS
   --json       JSON output (for agents)
-  -v           Verbose output
+  --dsp        Include --dangerously-skip-permissions in resume command
+
+KNOWN ISSUE
+  --strip-tools consumes next flag as value. Put other flags BEFORE it:
+    ccs-cloner clone <id> --dsp --strip-tools    (works)
+    ccs-cloner clone <id> --strip-tools --dsp    (fails)
 
 GLOBAL OPTIONS
   --help, -h       Show help
@@ -101,6 +108,8 @@ export const mainCommand = defineCommand({
       // Minimal, high-signal quickstart for agents (~250 tokens)
       console.log(`ccs-cloner v${VERSION} - Clone Claude Code sessions with reduced context
 
+TIP: Configure Claude Code to show session ID in status line for easy access.
+
 WHEN TO USE
   Session hitting context limits? Clone it with tools stripped.
 
@@ -110,13 +119,14 @@ PRESETS
   --strip-tools=extreme    remove all tools
 
 COMMANDS
-  ccs-cloner list                     # Find session IDs
-  ccs-cloner info <id>                # Check size before cloning
-  ccs-cloner clone <id> --strip-tools # Clone with default preset
+  ccs-cloner list                          # Find session IDs
+  ccs-cloner info <id>                     # Check size before cloning
+  ccs-cloner clone <id> --strip-tools      # Clone with default preset
+  ccs-cloner clone <id> --dsp --strip-tools  # Include --dangerously-skip-permissions in resume
 
 WHAT HAPPENS
-  - Extracts active branch only (discards rollback orphans)
   - Removes/truncates tool calls based on preset
+  - Removes thinking blocks
   - Registers new session in Claude Code
 
 Run "ccs-cloner --help" for full options and custom presets.`);

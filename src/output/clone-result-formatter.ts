@@ -21,6 +21,8 @@ export interface OutputFormatOptions {
   verbose?: boolean;
   /** Include debug information */
   debug?: boolean;
+  /** Include --dangerously-skip-permissions in resume command */
+  dsp?: boolean;
 }
 
 /**
@@ -47,6 +49,12 @@ export function formatCloneResult(
 
   lines.push("Statistics:");
   lines.push(formatStatistics(result.operationStatistics, options));
+  lines.push("");
+
+  // Resume command
+  const dspFlag = options.dsp ? " --dangerously-skip-permissions" : "";
+  lines.push("Resume:");
+  lines.push(`  claude --resume ${result.clonedSessionId}${dspFlag}`);
 
   return lines.join("\n");
 }

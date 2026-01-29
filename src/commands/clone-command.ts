@@ -49,6 +49,11 @@ export const cloneCommand = defineCommand({
       description: "Verbose output",
       default: false,
     },
+    dsp: {
+      type: "boolean",
+      description: "Include --dangerously-skip-permissions in resume command",
+      default: false,
+    },
   },
 
   async run({ args }) {
@@ -105,6 +110,7 @@ export const cloneCommand = defineCommand({
       const output = formatCloneResult(result, {
         json: args.json,
         verbose: args.verbose,
+        dsp: args.dsp,
       });
       console.log(output);
 

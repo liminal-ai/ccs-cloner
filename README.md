@@ -8,10 +8,9 @@ Claude Code sessions accumulate context over time: tool calls with large inputs/
 
 ccs-cloner creates a lean copy of a session by:
 
-1. Extracting only the active conversation branch (discarding orphaned rollback branches)
-2. Removing tool calls from old turns while preserving recent ones
-3. Truncating tool content in intermediate turns for gradual context reduction
-4. Automatically removing thinking blocks when tools are modified
+1. Removing tool calls from old turns while preserving recent ones
+2. Truncating tool content in intermediate turns for gradual context reduction
+3. Automatically removing thinking blocks when tools are modified
 
 The cloned session appears in `claude --resume` and can be continued with reduced context.
 
@@ -33,6 +32,8 @@ bun install && bun link
 Requires Bun 1.0+ or Node.js 20+.
 
 ## Quick Start
+
+**TIP:** Configure Claude Code to show session ID in status line for easy access.
 
 ```bash
 # List recent sessions to find the session ID
@@ -107,10 +108,17 @@ ccs-cloner clone <sessionId> [options]
 |------|-------------|
 | `--strip-tools` | Remove tools using default preset |
 | `--strip-tools=<preset>` | Remove tools using named preset (default, aggressive, extreme, or custom) |
+| `--dsp` | Include `--dangerously-skip-permissions` in resume command |
 | `--output, -o <path>` | Output path (default: auto-generated in same project directory) |
 | `--claude-dir <path>` | Claude data directory (default: `~/.claude`) |
 | `--json` | Output result as JSON |
 | `--verbose, -v` | Verbose output with statistics |
+
+**Known Issue:** `--strip-tools` consumes the next flag as its value. Put other flags BEFORE it:
+```bash
+ccs-cloner clone <id> --dsp --strip-tools    # works
+ccs-cloner clone <id> --strip-tools --dsp    # fails
+```
 
 **Examples:**
 
@@ -124,11 +132,14 @@ ccs-cloner clone abc-123-def --strip-tools=aggressive
 # Extreme: remove all tools
 ccs-cloner clone abc-123-def --strip-tools=extreme
 
+# Include --dangerously-skip-permissions in resume command
+ccs-cloner clone abc-123-def --dsp --strip-tools
+
 # Custom output location
 ccs-cloner clone abc-123-def --strip-tools -o ./backup.jsonl
 
 # JSON output for scripting
-ccs-cloner clone abc-123-def --strip-tools --json
+ccs-cloner clone abc-123-def --json --strip-tools
 ```
 
 ### list
@@ -250,11 +261,13 @@ Configuration sources are merged in order (later overrides earlier):
 
 ## How It Works
 
-### Active Branch Extraction
+### Active Branch Extraction (Disabled)
+
+> **Note:** This feature is currently disabled due to issues with cross-file parent references (subagent sessions). It is being evaluated for fixing or removal.
 
 Claude Code sessions are stored as JSONL files with a tree structure using `uuid` and `parentUuid` fields. When you use rollback or continue from an earlier point, the old branch becomes orphaned but remains in the file.
 
-ccs-cloner walks the `parentUuid` chain from the leaf node (identified via `summary.leafUuid` or latest timestamp) back to the root, keeping only entries in the active conversation path. Orphaned branches are discarded.
+When enabled, ccs-cloner walks the `parentUuid` chain from the leaf node back to the root, keeping only entries in the active conversation path. Orphaned branches would be discarded.
 
 ### Tool Removal Algorithm
 
@@ -292,7 +305,6 @@ import {
   listSessionsInProject,
   findSessionFileById,
   parseSessionFile,
-  extractActiveBranchFromSession,
   removeToolCallsFromHistory,
   BUILT_IN_PRESETS,
   resolveToolRemovalOptions,
@@ -337,13 +349,9 @@ for (const project of projects) {
 const sessionPath = await findSessionFileById("abc-123-def");
 const { entries } = await parseSessionFile(sessionPath);
 
-// Extract active branch from entries
-const activeBranch = extractActiveBranchFromSession(entries);
-console.log(activeBranch.extractionStatistics.orphanedEntriesDiscarded);
-
 // Remove tools from entries directly
 const resolved = resolveToolRemovalOptions({ preset: "default" });
-const removalResult = removeToolCallsFromHistory(activeBranch.entriesInActiveChain, resolved);
+const removalResult = removeToolCallsFromHistory(entries, resolved);
 console.log(removalResult.statistics.turnsWithToolsRemoved);
 console.log(removalResult.statistics.turnsWithToolsTruncated);
 console.log(removalResult.statistics.turnsWithToolsPreserved);
@@ -354,7 +362,6 @@ console.log(removalResult.statistics.turnsWithToolsPreserved);
 **Core Operations:**
 
 - `executeCloneOperation(options)` - Full clone pipeline
-- `extractActiveBranchFromSession(entries, leafUuid?)` - Extract active branch
 - `removeToolCallsFromHistory(entries, options)` - Remove/truncate tools
 - `filterCloneableEntries(entries)` - Filter non-cloneable entry types
 - `repairBrokenParentReferences(entries)` - Fix parent chain after filtering
@@ -405,10 +412,6 @@ import type {
   ToolRemovalStatistics,
   ToolRemovalPreset,
   ResolvedToolRemovalOptions,
-
-  // Branch types
-  ActiveBranchChain,
-  UuidGraph,
 
   // Configuration
   UserConfiguration,
