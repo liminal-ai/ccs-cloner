@@ -67,7 +67,11 @@ export const cloneCommand = defineCommand({
       if (stripToolsArg !== undefined) {
         let presetName: string;
 
-        if (stripToolsArg === "" || stripToolsArg === "true") {
+        // citty may pass boolean true when --strip-tools is used without a value
+        const isDefaultPreset =
+          stripToolsArg === "" || stripToolsArg === "true" || (stripToolsArg as unknown) === true;
+
+        if (isDefaultPreset) {
           // --strip-tools without value -> use default preset from config
           presetName = config.defaultPreset;
         } else if (isValidPresetName(stripToolsArg, config.customPresets)) {
