@@ -11,7 +11,7 @@ import {
   removeSessionFromIndex,
 } from "../../src/io/session-index-updater.js";
 
-const TEST_DIR = join(__dirname, "../.test-tmp");
+const TEST_DIR = join(__dirname, "../.test-tmp-index");
 const PROJECT_DIR = join(TEST_DIR, "project");
 
 describe("session-index-updater", () => {

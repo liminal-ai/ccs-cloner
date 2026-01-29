@@ -13,7 +13,7 @@ import {
 } from "../../src/io/session-directory-scanner.js";
 import { SessionNotFoundError } from "../../src/errors/clone-operation-errors.js";
 
-const TEST_DIR = join(__dirname, "../.test-tmp");
+const TEST_DIR = join(__dirname, "../.test-tmp-scanner");
 const CLAUDE_DIR = join(TEST_DIR, ".claude");
 const PROJECTS_DIR = join(CLAUDE_DIR, "projects");
 
@@ -63,10 +63,14 @@ describe("session-directory-scanner", () => {
   describe("isPathInsideClaudeDir", () => {
     test("returns true for claudeDir itself and nested paths, and false for prefix lookalikes", () => {
       expect(isPathInsideClaudeDir(CLAUDE_DIR, CLAUDE_DIR)).toBe(true);
-      expect(isPathInsideClaudeDir(join(CLAUDE_DIR, "projects", "x", "y.jsonl"), CLAUDE_DIR)).toBe(true);
+      expect(isPathInsideClaudeDir(join(CLAUDE_DIR, "projects", "x", "y.jsonl"), CLAUDE_DIR)).toBe(
+        true
+      );
 
       // Should not match siblings like ".claude-backup"
-      expect(isPathInsideClaudeDir(join(TEST_DIR, ".claude-backup", "projects", "x"), CLAUDE_DIR)).toBe(false);
+      expect(
+        isPathInsideClaudeDir(join(TEST_DIR, ".claude-backup", "projects", "x"), CLAUDE_DIR)
+      ).toBe(false);
     });
   });
 
@@ -82,7 +86,7 @@ describe("session-directory-scanner", () => {
     test("decode is lossy for original paths containing dashes (documented limitation)", () => {
       const original = "/Users/alice/foo-bar";
       const encoded = encodeProjectPath(original); // "-Users-alice-foo-bar"
-      const decoded = decodeProjectPath(encoded);  // "/Users/alice/foo/bar"
+      const decoded = decodeProjectPath(encoded); // "/Users/alice/foo/bar"
 
       expect(encoded).toBe("-Users-alice-foo-bar");
       expect(decoded).toBe("/Users/alice/foo/bar");

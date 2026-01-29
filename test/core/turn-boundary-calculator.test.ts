@@ -3,10 +3,7 @@
  */
 
 import { describe, test, expect } from "bun:test";
-import {
-  identifyTurnBoundaries,
-  isNewUserTurn,
-} from "../../src/core/turn-boundary-calculator.js";
+import { identifyTurnBoundaries, isNewUserTurn } from "../../src/core/turn-boundary-calculator.js";
 import type { SessionLineItem } from "../../src/types/index.js";
 
 describe("turn-boundary-calculator", () => {
@@ -88,23 +85,46 @@ describe("turn-boundary-calculator", () => {
 
     test("treats tool_result user entries as continuation, not a new turn", () => {
       const entries: SessionLineItem[] = [
-        { type: "assistant", uuid: "a0", message: { content: [{ type: "text", text: "preface" }] } },
+        {
+          type: "assistant",
+          uuid: "a0",
+          message: { content: [{ type: "text", text: "preface" }] },
+        },
         { type: "user", uuid: "u1", message: { content: "Turn 1" } },
         {
           type: "assistant",
           uuid: "a1",
           parentUuid: "u1",
-          message: { content: [{ type: "tool_use", id: "t1", name: "read_file", input: { path: "x" } }] },
+          message: {
+            content: [{ type: "tool_use", id: "t1", name: "read_file", input: { path: "x" } }],
+          },
         },
         {
           type: "user",
           uuid: "u1r",
           parentUuid: "a1",
-          message: { content: [{ type: "tool_result", tool_use_id: "t1", content: "ok", is_error: false }] },
+          message: {
+            content: [{ type: "tool_result", tool_use_id: "t1", content: "ok", is_error: false }],
+          },
         },
-        { type: "assistant", uuid: "a2", parentUuid: "u1r", message: { content: [{ type: "text", text: "done" }] } },
-        { type: "user", uuid: "u2", parentUuid: "a2", message: { content: [{ type: "text", text: "Turn 2" }] } },
-        { type: "assistant", uuid: "a3", parentUuid: "u2", message: { content: [{ type: "text", text: "ok" }] } },
+        {
+          type: "assistant",
+          uuid: "a2",
+          parentUuid: "u1r",
+          message: { content: [{ type: "text", text: "done" }] },
+        },
+        {
+          type: "user",
+          uuid: "u2",
+          parentUuid: "a2",
+          message: { content: [{ type: "text", text: "Turn 2" }] },
+        },
+        {
+          type: "assistant",
+          uuid: "a3",
+          parentUuid: "u2",
+          message: { content: [{ type: "text", text: "ok" }] },
+        },
       ];
 
       const turns = identifyTurnBoundaries(entries);

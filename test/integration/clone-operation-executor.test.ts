@@ -11,7 +11,7 @@ import { parseSessionContent } from "../../src/io/session-file-reader.js";
 import { readSessionsIndex } from "../../src/io/session-index-updater.js";
 import { validateParentChain } from "../../src/core/parent-chain-repairer.js";
 
-const TEST_DIR = join(__dirname, "../.test-tmp");
+const TEST_DIR = join(__dirname, "../.test-tmp-integration");
 const CLAUDE_DIR = join(TEST_DIR, ".claude");
 const PROJECT_DIR = join(CLAUDE_DIR, "projects", "-Users-test-project");
 const FIXTURES_DIR = join(__dirname, "../fixtures");
@@ -54,6 +54,20 @@ describe("executeCloneOperation (integration)", () => {
     expect(typeof outputEntries[0].summary).toBe("string");
     expect((outputEntries[0].summary as string).startsWith("Clone:")).toBe(true);
     expect(typeof outputEntries[0].leafUuid).toBe("string");
+
+    // Must have actual content entries (not just summary)
+    const nonSummaryEntries = outputEntries.filter((e) => e.type !== "summary");
+    expect(nonSummaryEntries.length).toBeGreaterThan(0);
+
+    // All entries with sessionId should have the new cloned sessionId
+    const entriesWithSessionId = outputEntries.filter((e) => e.sessionId !== undefined);
+    for (const entry of entriesWithSessionId) {
+      expect(entry.sessionId).toBe(result.clonedSessionId);
+    }
+
+    // Summary's leafUuid must match the last entry's uuid
+    const lastEntry = outputEntries[outputEntries.length - 1];
+    expect(outputEntries[0].leafUuid).toBe(lastEntry.uuid);
 
     // Filtered markers should not appear in output history
     expect(outputEntries.some((e) => e.type === "file-history-snapshot")).toBe(false);

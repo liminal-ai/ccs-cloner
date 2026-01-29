@@ -17,7 +17,10 @@ const FIXTURES_DIR = join(__dirname, "../fixtures");
 describe("parent-chain-repairer", () => {
   describe("validateParentChain", () => {
     test("detects invalid parentUuid references", () => {
-      const content = readFileSync(join(FIXTURES_DIR, "session-with-bad-parent-chain.jsonl"), "utf-8");
+      const content = readFileSync(
+        join(FIXTURES_DIR, "session-with-bad-parent-chain.jsonl"),
+        "utf-8"
+      );
       const entries = parseSessionContent(content);
 
       const errors = validateParentChain(entries);
@@ -30,7 +33,10 @@ describe("parent-chain-repairer", () => {
 
   describe("repairBrokenParentReferences", () => {
     test("repairs missing parentUuid by pointing to the last valid uuid before the entry", () => {
-      const content = readFileSync(join(FIXTURES_DIR, "session-with-bad-parent-chain.jsonl"), "utf-8");
+      const content = readFileSync(
+        join(FIXTURES_DIR, "session-with-bad-parent-chain.jsonl"),
+        "utf-8"
+      );
       const entries = parseSessionContent(content);
 
       const repaired = repairBrokenParentReferences(entries);
@@ -45,7 +51,12 @@ describe("parent-chain-repairer", () => {
     test("repairs an invalid parent on the first entry to null", () => {
       const entries: SessionLineItem[] = [
         { type: "user", uuid: "u1", parentUuid: "missing", message: { content: "hi" } },
-        { type: "assistant", uuid: "a1", parentUuid: "u1", message: { content: [{ type: "text", text: "ok" }] } },
+        {
+          type: "assistant",
+          uuid: "a1",
+          parentUuid: "u1",
+          message: { content: [{ type: "text", text: "ok" }] },
+        },
       ];
 
       const repaired = repairBrokenParentReferences(entries);

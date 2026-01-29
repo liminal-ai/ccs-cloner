@@ -3,13 +3,18 @@
  */
 
 import { describe, test, expect } from "bun:test";
+import { readFileSync } from "fs";
+import { join } from "path";
 import {
   calculateTurnBoundaryForRemoval,
   removeToolCallsFromHistory,
   truncateToolContent,
   truncateObjectValues,
 } from "../../src/core/tool-call-remover.js";
+import { parseSessionContent } from "../../src/io/session-file-reader.js";
 import type { SessionLineItem, ResolvedToolRemovalOptions } from "../../src/types/index.js";
+
+const FIXTURES_DIR = join(__dirname, "../fixtures");
 
 describe("tool-call-remover", () => {
   describe("calculateTurnBoundaryForRemoval", () => {
@@ -355,6 +360,65 @@ describe("tool-call-remover", () => {
       // Second turn should still have its content
       const secondTurnAssistant = result.processedEntries.find((e) => e.uuid === "6");
       expect(secondTurnAssistant).toBeDefined();
+    });
+
+    test("handles tool_use without id and tool_result without tool_use_id gracefully", () => {
+      // This fixture has tool_use without id and tool_result without tool_use_id
+      const content = readFileSync(
+        join(FIXTURES_DIR, "session-with-tool-edgecases.jsonl"),
+        "utf-8"
+      );
+      const entries = parseSessionContent(content);
+
+      const options: ResolvedToolRemovalOptions = {
+        toolRemovalPercentage: 100,
+        truncateRemainingTools: false,
+        thinkingRemovalPercentage: 0,
+      };
+
+      // Should not throw, should handle gracefully
+      const result = removeToolCallsFromHistory(entries, options);
+
+      // Should still process without error
+      expect(result.processedEntries.length).toBeGreaterThan(0);
+
+      // Tool_use blocks without IDs should still be removed (removed by type)
+      const hasToolUse = result.processedEntries.some((e) => {
+        if (!Array.isArray(e.message?.content)) {
+          return false;
+        }
+        return e.message.content.some((b) => (b as { type?: string }).type === "tool_use");
+      });
+      expect(hasToolUse).toBe(false);
+
+      // Tool_result without tool_use_id is NOT removed — can't match to removed tool_use
+      // This is correct/safe behavior: we don't remove orphaned tool_results
+      const hasToolResult = result.processedEntries.some((e) => {
+        if (!Array.isArray(e.message?.content)) {
+          return false;
+        }
+        return e.message.content.some((b) => (b as { type?: string }).type === "tool_result");
+      });
+      expect(hasToolResult).toBe(true); // Orphaned tool_result remains
+    });
+
+    test("truncates tool_use without id when truncateRemainingTools is true", () => {
+      // This fixture has tool_use without id
+      const content = readFileSync(
+        join(FIXTURES_DIR, "session-with-tool-edgecases.jsonl"),
+        "utf-8"
+      );
+      const entries = parseSessionContent(content);
+
+      const options: ResolvedToolRemovalOptions = {
+        toolRemovalPercentage: 0, // Don't remove, just truncate
+        truncateRemainingTools: true,
+        thinkingRemovalPercentage: 0,
+      };
+
+      // Should not throw
+      const result = removeToolCallsFromHistory(entries, options);
+      expect(result.processedEntries.length).toBeGreaterThan(0);
     });
   });
 });

@@ -20,7 +20,11 @@ describe("session-line-item-filter", () => {
       const result = filterCloneableEntries(entries);
 
       expect(result.filteredCount).toBe(4);
-      expect(result.entries.map((e) => e.uuid).filter(Boolean)).toEqual(["entry-1", "entry-5", "entry-6"]);
+      expect(result.entries.map((e) => e.uuid).filter(Boolean)).toEqual([
+        "entry-1",
+        "entry-5",
+        "entry-6",
+      ]);
 
       // Ensure no filtered markers remain
       expect(result.entries.some((e) => e.type === "summary")).toBe(false);

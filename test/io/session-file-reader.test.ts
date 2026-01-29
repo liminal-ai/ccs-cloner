@@ -5,10 +5,7 @@
 import { describe, test, expect } from "bun:test";
 import { readFileSync } from "fs";
 import { join } from "path";
-import {
-  parseSessionContent,
-  extractFirstUserMessage,
-} from "../../src/io/session-file-reader.js";
+import { parseSessionContent, extractFirstUserMessage } from "../../src/io/session-file-reader.js";
 import { InvalidSessionError } from "../../src/errors/clone-operation-errors.js";
 import type { SessionLineItem } from "../../src/types/index.js";
 

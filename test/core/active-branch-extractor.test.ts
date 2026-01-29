@@ -98,6 +98,38 @@ describe("active-branch-extractor", () => {
       // Without preference, picks latest timestamp
       expect(leafUuid).toBe("entry-9-orphan");
     });
+
+    test("falls back to first leaf when no timestamps present", () => {
+      const content = readFileSync(
+        join(FIXTURES_DIR, "session-with-missing-timestamps.jsonl"),
+        "utf-8"
+      );
+      const entries = parseSessionContent(content);
+      const graph = buildUuidGraphFromEntries(entries);
+
+      // This session has multiple leaves (entry-4, entry-5-leafB) but no timestamps
+      expect(graph.leafUuids.length).toBeGreaterThan(1);
+
+      // Without timestamps, should still pick a leaf (behavior is deterministic)
+      const leafUuid = findLeafUuidFromEntries(entries, graph);
+      expect(leafUuid).not.toBeNull();
+      expect(graph.leafUuids).toContain(leafUuid!);
+    });
+
+    test("respects summary leafUuid even without timestamps", () => {
+      const content = readFileSync(
+        join(FIXTURES_DIR, "session-with-missing-timestamps.jsonl"),
+        "utf-8"
+      );
+      const entries = parseSessionContent(content);
+      const graph = buildUuidGraphFromEntries(entries);
+
+      // Summary says leafUuid is entry-4, should use that
+      const leafUuid = findLeafUuidFromEntries(entries, graph, {
+        preferredLeafUuid: "entry-4",
+      });
+      expect(leafUuid).toBe("entry-4");
+    });
   });
 
   describe("walkParentChainToRoot", () => {
