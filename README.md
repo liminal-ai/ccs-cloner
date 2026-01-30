@@ -62,6 +62,8 @@ Tool removal uses presets that define how many "turns with tools" to keep and ho
 | `aggressive` | 10 turns | 50% | 5 truncated, 5 full fidelity |
 | `extreme` | 0 | - | All tools removed |
 
+Using `--strip-tools` or `--strip-tools=default` applies your configured default preset (initially `default`, configurable via `defaultPreset` in config).
+
 ### How Presets Work
 
 Tool removal targets **turns that have tool calls**, not all turns. This ensures consistent behavior across multiple clones of the same session.
@@ -114,12 +116,6 @@ ccs-cloner clone <sessionId> [options]
 | `--json` | Output result as JSON |
 | `--verbose, -v` | Verbose output with statistics |
 
-**Known Issue:** `--strip-tools` consumes the next flag as its value. Put other flags BEFORE it:
-```bash
-ccs-cloner clone <id> --dsp --strip-tools    # works
-ccs-cloner clone <id> --strip-tools --dsp    # fails
-```
-
 **Examples:**
 
 ```bash
@@ -133,7 +129,7 @@ ccs-cloner clone abc-123-def --strip-tools=aggressive
 ccs-cloner clone abc-123-def --strip-tools=extreme
 
 # Include --dangerously-skip-permissions in resume command
-ccs-cloner clone abc-123-def --dsp --strip-tools
+ccs-cloner clone abc-123-def --strip-tools --dsp
 
 # Custom output location
 ccs-cloner clone abc-123-def --strip-tools -o ./backup.jsonl

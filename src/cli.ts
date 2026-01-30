@@ -8,6 +8,7 @@
  */
 
 import { runMain } from "citty";
+import { normalizeStripToolsArg } from "./cli/normalize-args.js";
 import { mainCommand, showHelp } from "./commands/main-command.js";
 
 // Intercept --help/-h before citty to show comprehensive help
@@ -20,5 +21,9 @@ if (isHelpOnly || isNoArgs) {
 	showHelp();
 	process.exit(0);
 }
+
+// Normalize args before passing to citty
+const normalizedArgs = normalizeStripToolsArg(args);
+process.argv = ["node", "ccs-cloner", ...normalizedArgs];
 
 runMain(mainCommand);

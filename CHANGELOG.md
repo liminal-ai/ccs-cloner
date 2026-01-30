@@ -2,6 +2,15 @@
 
 All notable changes to ccs-cloner will be documented in this file.
 
+## [0.3.5] - 2026-01-30
+
+### Fixed
+- `--strip-tools` no longer consumes the next flag as its value
+- `--strip-tools` and `--strip-tools=default` now both use the configured default preset
+
+### Changed
+- Clarified in docs that `--strip-tools` uses the configured default preset (initially `default`, configurable via `defaultPreset`)
+
 ## [0.3.4] - 2026-01-29
 
 ### Changed

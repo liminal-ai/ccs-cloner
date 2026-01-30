@@ -9,7 +9,7 @@ import { cloneCommand } from "./clone-command.js";
 import { infoCommand } from "./info-command.js";
 import { listCommand } from "./list-command.js";
 
-const VERSION = "0.3.4";
+const VERSION = "0.3.5";
 
 export function showHelp(): void {
 	console.log(`ccs-cloner v${VERSION} - Clone Claude Code sessions with reduced context
@@ -43,11 +43,6 @@ CUSTOM PRESETS
 OUTPUT OPTIONS
   --json       JSON output (for agents)
   --dsp        Include --dangerously-skip-permissions in resume command
-
-KNOWN ISSUE
-  --strip-tools consumes next flag as value. Put other flags BEFORE it:
-    ccs-cloner clone <id> --dsp --strip-tools    (works)
-    ccs-cloner clone <id> --strip-tools --dsp    (fails)
 
 GLOBAL OPTIONS
   --help, -h       Show help
@@ -123,7 +118,7 @@ COMMANDS
   ccs-cloner list                          # Find session IDs
   ccs-cloner info <id>                     # Check size before cloning
   ccs-cloner clone <id> --strip-tools      # Clone with default preset
-  ccs-cloner clone <id> --dsp --strip-tools  # Include --dangerously-skip-permissions in resume
+  ccs-cloner clone <id> --strip-tools --dsp  # Include --dangerously-skip-permissions in resume
 
 WHAT HAPPENS
   - Removes/truncates tool calls based on preset
