@@ -108,6 +108,7 @@ TIP: Configure Claude Code to show session ID in status line for easy access.
 
 WHEN TO USE
   Session hitting context limits? Clone it with tools stripped.
+  NOTE: If cloning the *current* session from within itself, the last response may be missing—run after the turn completes or from a different session.
 
 PRESETS
   --strip-tools            default: keep 20 tool-turns (10 truncated, 10 full)
