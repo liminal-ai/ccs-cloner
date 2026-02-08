@@ -14,9 +14,10 @@ import type { ToolRemovalPreset } from "../../src/types/index.js";
 
 describe("tool-removal-presets", () => {
 	describe("BUILT_IN_PRESETS", () => {
-		test("has default, aggressive, extreme", () => {
+		test("has default, aggressive, heavy, extreme", () => {
 			expect(BUILT_IN_PRESETS.default).toBeDefined();
 			expect(BUILT_IN_PRESETS.aggressive).toBeDefined();
+			expect(BUILT_IN_PRESETS.heavy).toBeDefined();
 			expect(BUILT_IN_PRESETS.extreme).toBeDefined();
 		});
 
@@ -30,6 +31,11 @@ describe("tool-removal-presets", () => {
 			expect(BUILT_IN_PRESETS.aggressive.truncatePercent).toBe(50);
 		});
 
+		test("heavy keeps 10 turns, 80% truncate", () => {
+			expect(BUILT_IN_PRESETS.heavy.keepTurnsWithTools).toBe(10);
+			expect(BUILT_IN_PRESETS.heavy.truncatePercent).toBe(80);
+		});
+
 		test("extreme keeps 0 turns", () => {
 			expect(BUILT_IN_PRESETS.extreme.keepTurnsWithTools).toBe(0);
 			expect(BUILT_IN_PRESETS.extreme.truncatePercent).toBe(0);
@@ -40,6 +46,7 @@ describe("tool-removal-presets", () => {
 		test("returns true for built-in presets", () => {
 			expect(isValidPresetName("default")).toBe(true);
 			expect(isValidPresetName("aggressive")).toBe(true);
+			expect(isValidPresetName("heavy")).toBe(true);
 			expect(isValidPresetName("extreme")).toBe(true);
 		});
 
@@ -189,6 +196,7 @@ describe("tool-removal-presets", () => {
 			const presets = listAvailablePresets();
 			expect(presets).toContain("default");
 			expect(presets).toContain("aggressive");
+			expect(presets).toContain("heavy");
 			expect(presets).toContain("extreme");
 		});
 

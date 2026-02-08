@@ -2,6 +2,16 @@
 
 All notable changes to ccs-cloner will be documented in this file.
 
+## [0.4.0] - 2026-02-08
+
+### Added
+- New built-in `heavy` preset: keep 10 tool-turns with 80% truncation (8 truncated, 2 full fidelity)
+- Fills the gap between `aggressive` (50/50 split) and `extreme` (remove all)
+
+### Fixed
+- Config file loading for `.ts` and `.js` formats by externalizing c12 from the bundle
+- Previously only `.mjs` config files worked due to bundled jiti failing to resolve modules
+
 ## [0.3.5] - 2026-01-30
 
 ### Fixed

@@ -45,6 +45,9 @@ ccs-cloner clone abc123 --strip-tools
 # Clone with aggressive preset (keep 10 tool-turns)
 ccs-cloner clone abc123 --strip-tools=aggressive
 
+# Clone with heavy preset (keep 10 tool-turns, mostly truncated)
+ccs-cloner clone abc123 --strip-tools=heavy
+
 # Clone with extreme preset (remove all tools)
 ccs-cloner clone abc123 --strip-tools=extreme
 
@@ -60,6 +63,7 @@ Tool removal uses presets that define how many "turns with tools" to keep and ho
 |--------|------|----------|----------|
 | `default` | 20 turns | 50% | 10 truncated, 10 full fidelity |
 | `aggressive` | 10 turns | 50% | 5 truncated, 5 full fidelity |
+| `heavy` | 10 turns | 80% | 8 truncated, 2 full fidelity |
 | `extreme` | 0 | - | All tools removed |
 
 Using `--strip-tools` or `--strip-tools=default` applies your configured default preset (initially `default`, configurable via `defaultPreset` in config).
@@ -109,7 +113,7 @@ ccs-cloner clone <sessionId> [options]
 | Flag | Description |
 |------|-------------|
 | `--strip-tools` | Remove tools using default preset |
-| `--strip-tools=<preset>` | Remove tools using named preset (default, aggressive, extreme, or custom) |
+| `--strip-tools=<preset>` | Remove tools using named preset (default, aggressive, heavy, extreme, or custom) |
 | `--dsp` | Include `--dangerously-skip-permissions` in resume command |
 | `--output, -o <path>` | Output path (default: auto-generated in same project directory) |
 | `--claude-dir <path>` | Claude data directory (default: `~/.claude`) |
@@ -124,6 +128,9 @@ ccs-cloner clone abc-123-def --strip-tools
 
 # Aggressive: keep only 10 tool-turns
 ccs-cloner clone abc-123-def --strip-tools=aggressive
+
+# Heavy: keep 10 tool-turns, mostly truncated
+ccs-cloner clone abc-123-def --strip-tools=heavy
 
 # Extreme: remove all tools
 ccs-cloner clone abc-123-def --strip-tools=extreme

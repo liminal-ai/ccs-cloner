@@ -37,7 +37,7 @@ export const cloneCommand = defineCommand({
 		"strip-tools": {
 			type: "string",
 			description:
-				"Remove tools using preset (default|aggressive|extreme). Use --strip-tools for default preset.",
+				"Remove tools using preset (default|aggressive|heavy|extreme). Use --strip-tools for default preset.",
 		},
 		output: {
 			type: "string",

@@ -17,6 +17,7 @@ import type {
  * |------------|------|----------|-------------------------------|
  * | default    | 20   | 50%      | 10 truncated, 10 full fidelity|
  * | aggressive | 10   | 50%      | 5 truncated, 5 full fidelity  |
+ * | heavy      | 10   | 80%      | 8 truncated, 2 full fidelity  |
  * | extreme    | 0    | 0%       | All tools removed             |
  */
 export const BUILT_IN_PRESETS: Record<string, ToolRemovalPreset> = {
@@ -26,6 +27,7 @@ export const BUILT_IN_PRESETS: Record<string, ToolRemovalPreset> = {
 		keepTurnsWithTools: 10,
 		truncatePercent: 50,
 	},
+	heavy: { name: "heavy", keepTurnsWithTools: 10, truncatePercent: 80 },
 	extreme: { name: "extreme", keepTurnsWithTools: 0, truncatePercent: 0 },
 };
 

@@ -9,7 +9,7 @@ import { cloneCommand } from "./clone-command.js";
 import { infoCommand } from "./info-command.js";
 import { listCommand } from "./list-command.js";
 
-const VERSION = "0.3.6";
+const VERSION = "0.4.0";
 
 export function showHelp(): void {
 	console.log(`ccs-cloner v${VERSION} - Clone Claude Code sessions with reduced context
@@ -27,6 +27,7 @@ COMMANDS
 PRESETS (for --strip-tools)
   default      Keep 20 tool-turns: 10 truncated, 10 full fidelity
   aggressive   Keep 10 tool-turns: 5 truncated, 5 full fidelity
+  heavy        Keep 10 tool-turns: 8 truncated, 2 full fidelity
   extreme      Remove all tools
 
 HOW IT WORKS
@@ -113,6 +114,7 @@ WHEN TO USE
 PRESETS
   --strip-tools            default: keep 20 tool-turns (10 truncated, 10 full)
   --strip-tools=aggressive keep 10 tool-turns (5 truncated, 5 full)
+  --strip-tools=heavy      keep 10 tool-turns (8 truncated, 2 full)
   --strip-tools=extreme    remove all tools
 
 COMMANDS

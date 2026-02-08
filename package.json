@@ -1,6 +1,6 @@
 {
   "name": "ccs-cloner",
-  "version": "0.3.6",
+  "version": "0.4.0",
   "description": "CLI tool to clone and modify Claude Code sessions",
   "type": "module",
   "main": "dist/cli.js",
@@ -18,7 +18,7 @@
     "check": "biome check src test",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
-    "build": "bun build ./src/cli.ts --outdir ./dist --target node --external node-fetch-native && node -e \"const fs=require('fs');const f='./dist/cli.js';fs.writeFileSync(f,fs.readFileSync(f,'utf8').replace('#!/usr/bin/env bun','#!/usr/bin/env node'))\"",
+    "build": "bun build ./src/cli.ts --outdir ./dist --target node --external c12 --external node-fetch-native && node -e \"const fs=require('fs');const f='./dist/cli.js';fs.writeFileSync(f,fs.readFileSync(f,'utf8').replace('#!/usr/bin/env bun','#!/usr/bin/env node'))\"",
     "prepublishOnly": "bun run build"
   },
   "dependencies": {
