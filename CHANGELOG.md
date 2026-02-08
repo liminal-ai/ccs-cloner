@@ -2,6 +2,11 @@
 
 All notable changes to ccs-cloner will be documented in this file.
 
+## [0.4.1] - 2026-02-08
+
+### Fixed
+- Strip `toolUseResult` field from truncated and removed tool turns — previously only `message.content` was truncated while the full raw tool output (often 63%+ of file size) was left untouched
+
 ## [0.4.0] - 2026-02-08
 
 ### Added

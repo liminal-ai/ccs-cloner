@@ -223,6 +223,8 @@ export function removeToolCallsFromHistory(
 			});
 			if (content.length !== beforeLength) {
 				contentModified = true;
+				// Also remove the full tool output stored outside the API conversation
+				delete (entry as Record<string, unknown>).toolUseResult;
 			}
 		} else if (isInTruncatedZone && entry.type === "user") {
 			// In truncated zone: truncate tool_result content
@@ -248,6 +250,10 @@ export function removeToolCallsFromHistory(
 				}
 				return block;
 			});
+			// Also remove the full tool output — the truncated message.content is sufficient
+			if (contentModified) {
+				delete (entry as Record<string, unknown>).toolUseResult;
+			}
 		}
 
 		// Remove thinking blocks (always remove all when any tools are touched)

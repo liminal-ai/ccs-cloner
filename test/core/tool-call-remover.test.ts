@@ -681,6 +681,163 @@ describe("tool-call-remover", () => {
 	});
 
 	// ============================================================================
+	// toolUseResult Stripping
+	// ============================================================================
+
+	describe("toolUseResult stripping", () => {
+		/**
+		 * Create entries with toolUseResult (Claude Code's local full tool output).
+		 * This field sits alongside message.content on user tool-result entries.
+		 */
+		function createSessionWithToolUseResult(
+			toolTurnCount: number,
+		): SessionLineItem[] {
+			const entries: SessionLineItem[] = [];
+			let parentUuid: string | undefined;
+
+			for (let i = 0; i < toolTurnCount; i++) {
+				const userUuid = `user-${i}`;
+				const assistantToolUuid = `assistant-tool-${i}`;
+				const userResultUuid = `user-result-${i}`;
+				const assistantResponseUuid = `assistant-response-${i}`;
+
+				entries.push({
+					type: "user",
+					uuid: userUuid,
+					parentUuid,
+					message: { content: `Turn ${i + 1} user message` },
+				});
+
+				entries.push({
+					type: "assistant",
+					uuid: assistantToolUuid,
+					parentUuid: userUuid,
+					message: {
+						content: [
+							{ type: "text", text: `Using tool for turn ${i + 1}` },
+							{
+								type: "tool_use",
+								id: `tool-${i}`,
+								name: "read_file",
+								input: { path: `file-${i}.txt`, content: "a".repeat(200) },
+							},
+						],
+					},
+				});
+
+				// User with tool_result AND toolUseResult (the full raw output)
+				entries.push({
+					type: "user",
+					uuid: userResultUuid,
+					parentUuid: assistantToolUuid,
+					toolUseResult: {
+						type: "text",
+						file: {
+							filePath: `file-${i}.txt`,
+							content: "x".repeat(10000),
+						},
+					},
+					message: {
+						content: [
+							{
+								type: "tool_result",
+								tool_use_id: `tool-${i}`,
+								content:
+									"b".repeat(200) +
+									"\n" +
+									"c".repeat(200) +
+									"\n" +
+									"d".repeat(200),
+								is_error: false,
+							},
+						],
+					},
+				} as SessionLineItem);
+
+				entries.push({
+					type: "assistant",
+					uuid: assistantResponseUuid,
+					parentUuid: userResultUuid,
+					message: {
+						content: [{ type: "text", text: `Done with turn ${i + 1}` }],
+					},
+				});
+
+				parentUuid = assistantResponseUuid;
+			}
+
+			return entries;
+		}
+
+		test("removes toolUseResult from entries in removed zone", () => {
+			const entries = createSessionWithToolUseResult(10);
+
+			// Verify toolUseResult exists before removal
+			const beforeCount = entries.filter((e) => "toolUseResult" in e).length;
+			expect(beforeCount).toBe(10);
+
+			const result = removeToolCallsFromHistory(entries, {
+				keepTurnsWithTools: 0,
+				truncatePercent: 0,
+			});
+
+			// All tool entries should be deleted entirely (extreme removes everything)
+			const afterCount = result.processedEntries.filter(
+				(e) => "toolUseResult" in e,
+			).length;
+			expect(afterCount).toBe(0);
+		});
+
+		test("removes toolUseResult from entries in truncated zone", () => {
+			// 5 turns, keep all 5, truncate 80% = 4 truncated, 1 full
+			const entries = createSessionWithToolUseResult(5);
+
+			const result = removeToolCallsFromHistory(entries, {
+				keepTurnsWithTools: 5,
+				truncatePercent: 80,
+			});
+
+			// 4 truncated turns should have toolUseResult stripped
+			// 1 preserved turn should still have it
+			const withToolUseResult = result.processedEntries.filter(
+				(e) => "toolUseResult" in e,
+			);
+			expect(withToolUseResult.length).toBe(1);
+		});
+
+		test("preserves toolUseResult on full-fidelity entries", () => {
+			// 3 turns, keep all 3, truncate 0% = all preserved
+			const entries = createSessionWithToolUseResult(3);
+
+			const result = removeToolCallsFromHistory(entries, {
+				keepTurnsWithTools: 3,
+				truncatePercent: 0,
+			});
+
+			const withToolUseResult = result.processedEntries.filter(
+				(e) => "toolUseResult" in e,
+			);
+			expect(withToolUseResult.length).toBe(3);
+		});
+
+		test("stripping toolUseResult significantly reduces serialized size", () => {
+			// 5 turns with 10KB toolUseResult each = ~50KB in toolUseResult alone
+			const entries = createSessionWithToolUseResult(5);
+			const beforeSize = JSON.stringify(entries).length;
+
+			// Keep all 5, truncate all 5
+			const result = removeToolCallsFromHistory(entries, {
+				keepTurnsWithTools: 5,
+				truncatePercent: 100,
+			});
+			const afterSize = JSON.stringify(result.processedEntries).length;
+
+			// Should save most of the ~50KB toolUseResult content
+			expect(afterSize).toBeLessThan(beforeSize * 0.5);
+		});
+	});
+
+	// ============================================================================
 	// Fixture-Based Tests
 	// ============================================================================
 
