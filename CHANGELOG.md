@@ -2,6 +2,17 @@
 
 All notable changes to ccs-cloner will be documented in this file.
 
+## [0.5.0] - 2026-02-15
+
+### Added
+- Automatic subagent payload cleanup during `--strip-tools` runs when tools are touched:
+  - Remove `queue-operation` entries (duplicate task notification payloads)
+  - Remove `progress` entries (operational telemetry)
+  - Truncate user `<task-notification>` `<result>` bodies to 150 chars with ` (remaining content truncated)` suffix
+
+### Changed
+- Documented task notification and telemetry cleanup behavior in README
+
 ## [0.4.1] - 2026-02-08
 
 ### Fixed
