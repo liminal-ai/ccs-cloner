@@ -11,6 +11,7 @@ ccs-cloner creates a lean copy of a session by:
 1. Removing tool calls from old turns while preserving recent ones
 2. Truncating tool content in intermediate turns for gradual context reduction
 3. Automatically removing thinking blocks when `--strip-tools` is used
+4. Automatically stripping tool telemetry (`queue-operation`, `progress`) and truncating task notification payloads
 
 The cloned session appears in `claude --resume` and can be continued with reduced context.
 
@@ -286,6 +287,16 @@ This ensures consistent behavior across multiple clones. Unlike percentage-based
 ### Thinking Block Removal
 
 When `--strip-tools` is used on a session containing tools, all thinking blocks are automatically removed from the entire session. This is because thinking blocks often reference tool results that may no longer exist.
+
+### Task Notification and Telemetry Cleanup
+
+When `--strip-tools` is used on a session containing tools, ccs-cloner also:
+
+1. Removes `queue-operation` entries (duplicate task notification payloads)
+2. Removes `progress` entries (operational telemetry)
+3. Truncates `<result>` content in user `<task-notification>` messages to 150 characters and appends ` (remaining content truncated)`
+
+This preserves task identity and status (`task-id`, `status`, `summary`) while preventing large subagent payloads from dominating cloned context.
 
 ### Session Index Update
 

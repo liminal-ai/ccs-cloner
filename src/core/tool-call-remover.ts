@@ -4,12 +4,17 @@
  * Removes tool_use blocks, tool_result blocks, and thinking blocks
  * from session entries based on "keep last N turns-with-tools" model.
  *
+ * Also removes non-conversational tool telemetry when tools are touched:
+ * - queue-operation entries (duplicate task notifications)
+ * - progress entries
+ * - truncates task-notification payloads in user string content
+ *
  * Algorithm:
  * 1. Find turns that have tool calls
  * 2. Keep the last N of those turns
  * 3. Of kept turns, truncate oldest X%
  * 4. Remove tools from everything else
- * 5. Always remove thinking blocks when any tools are touched
+ * 5. Always remove thinking blocks and tool telemetry when tools are touched
  */
 
 import type {
@@ -160,6 +165,32 @@ export function removeToolCallsFromHistory(
 			turnIndex !== undefined && removedTurnIndices.has(turnIndex);
 		const isInTruncatedZone =
 			turnIndex !== undefined && truncatedTurnIndices.has(turnIndex);
+
+		// Remove non-conversational tool telemetry whenever any tools are touched.
+		if (willTouchTools) {
+			if (entry.type === "queue-operation" || entry.type === "progress") {
+				entriesToDelete.add(i);
+				continue;
+			}
+
+			// Task tool payloads are stored as string content on user messages.
+			// Keep task-id/status/summary but truncate long <result> bodies.
+			if (entry.type === "user" && typeof entry.message?.content === "string") {
+				const truncatedNotification = truncateTaskNotificationContent(
+					entry.message.content,
+				);
+				if (truncatedNotification !== entry.message.content) {
+					modifiedEntries[i] = {
+						...entry,
+						message: {
+							...entry.message,
+							content: truncatedNotification,
+						},
+					};
+				}
+				continue;
+			}
+		}
 
 		let content: ContentBlock[] | null = null;
 
@@ -335,6 +366,44 @@ export function truncateToolContent(content: string): string {
 	}
 
 	return truncated;
+}
+
+/**
+ * Truncate <result> content in task notifications while preserving headers.
+ *
+ * Task notifications are user string messages shaped like:
+ * <task-notification><task-id>...</task-id><status>...</status><summary>...</summary><result>...</result></task-notification>
+ *
+ * @param content - User message string content
+ * @param maxResultChars - Max characters to keep from <result> body
+ * @returns Updated notification content, or original content if not a task notification
+ */
+export function truncateTaskNotificationContent(
+	content: string,
+	maxResultChars: number = 150,
+): string {
+	if (!content.startsWith("<task-notification>")) {
+		return content;
+	}
+
+	const resultTagPattern = /<result>([\s\S]*?)<\/result>/;
+	const match = content.match(resultTagPattern);
+	if (!match) {
+		return content;
+	}
+
+	const resultBody = match[1];
+	if (resultBody.length <= maxResultChars) {
+		return content;
+	}
+
+	const truncatedResult =
+		resultBody.slice(0, maxResultChars).trimEnd() +
+		" (remaining content truncated)";
+	return content.replace(
+		resultTagPattern,
+		`<result>${truncatedResult}</result>`,
+	);
 }
 
 /**

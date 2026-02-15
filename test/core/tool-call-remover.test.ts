@@ -15,6 +15,7 @@ import { join } from "path";
 import {
 	removeToolCallsFromHistory,
 	truncateObjectValues,
+	truncateTaskNotificationContent,
 	truncateToolContent,
 } from "../../src/core/tool-call-remover.js";
 import { parseSessionContent } from "../../src/io/session-file-reader.js";
@@ -259,6 +260,20 @@ function appendToolTurns(
 }
 
 /**
+ * Build a task-notification payload with long result text.
+ */
+function createTaskNotification(taskId: string, resultLength: number): string {
+	return [
+		"<task-notification>",
+		`<task-id>${taskId}</task-id>`,
+		"<status>completed</status>",
+		"<summary>Agent finished work</summary>",
+		`<result>${"x".repeat(resultLength)}</result>`,
+		"</task-notification>",
+	].join("\n");
+}
+
+/**
  * Count how many turns in entries have tool calls.
  */
 function countToolTurnsInEntries(entries: SessionLineItem[]): number {
@@ -303,6 +318,25 @@ describe("tool-call-remover", () => {
 			const result = truncateToolContent(longLine);
 			expect(result.length).toBe(123); // 120 + "..."
 			expect(result.endsWith("...")).toBe(true);
+		});
+	});
+
+	describe("truncateTaskNotificationContent", () => {
+		test("preserves non-task-notification content", () => {
+			const input = "plain user message";
+			expect(truncateTaskNotificationContent(input)).toBe(input);
+		});
+
+		test("truncates only the <result> body and preserves header fields", () => {
+			const input = createTaskNotification("abc123", 400);
+			const result = truncateTaskNotificationContent(input, 150);
+
+			expect(result).toContain("<task-id>abc123</task-id>");
+			expect(result).toContain("<status>completed</status>");
+			expect(result).toContain("<summary>Agent finished work</summary>");
+			expect(result).toContain(" (remaining content truncated)");
+			expect(result).toContain("<result>");
+			expect(result).toContain("</result>");
 		});
 	});
 
@@ -516,6 +550,142 @@ describe("tool-call-remover", () => {
 			).some((b) => b.type === "thinking");
 			expect(hasThinking).toBe(true);
 			expect(result.statistics.thinkingBlocksRemoved).toBe(0);
+		});
+	});
+
+	describe("task telemetry cleanup", () => {
+		test("removes queue-operation and progress entries when tools are touched", () => {
+			const taskNotification = createTaskNotification("agent-123", 1000);
+			const entries: SessionLineItem[] = [
+				{ type: "user", uuid: "u1", message: { content: "Start" } },
+				{
+					type: "assistant",
+					uuid: "a1",
+					parentUuid: "u1",
+					message: {
+						content: [
+							{
+								type: "tool_use",
+								id: "tool-1",
+								name: "Task",
+								input: { prompt: "run task", run_in_background: true },
+							},
+						],
+					},
+				},
+				{
+					type: "user",
+					uuid: "u2",
+					parentUuid: "a1",
+					message: {
+						content: [
+							{
+								type: "tool_result",
+								tool_use_id: "tool-1",
+								content:
+									"Async agent launched successfully.\nagentId: agent-123",
+								is_error: false,
+							},
+						],
+					},
+				},
+				{
+					type: "queue-operation",
+					timestamp: "2026-02-15T00:00:00.000Z",
+					sessionId: "s1",
+					operation: "enqueue",
+					content: taskNotification,
+				},
+				{
+					type: "user",
+					uuid: "u3",
+					parentUuid: "u2",
+					message: { content: taskNotification },
+				},
+				{ type: "progress", uuid: "p1", parentUuid: "u3" },
+				{
+					type: "assistant",
+					uuid: "a2",
+					parentUuid: "p1",
+					message: { content: [{ type: "text", text: "Done" }] },
+				},
+			];
+
+			const result = removeToolCallsFromHistory(entries, {
+				keepTurnsWithTools: 0,
+				truncatePercent: 0,
+			});
+
+			expect(
+				result.processedEntries.some((e) => e.type === "queue-operation"),
+			).toBe(false);
+			expect(result.processedEntries.some((e) => e.type === "progress")).toBe(
+				false,
+			);
+
+			const notificationEntry = result.processedEntries.find(
+				(e) =>
+					e.type === "user" &&
+					typeof e.message?.content === "string" &&
+					e.message.content.startsWith("<task-notification>"),
+			);
+
+			expect(notificationEntry).toBeDefined();
+			const notificationContent = notificationEntry!.message!.content as string;
+			expect(notificationContent).toContain("<task-id>agent-123</task-id>");
+			expect(notificationContent).toContain("<status>completed</status>");
+			expect(notificationContent).toContain(
+				"<summary>Agent finished work</summary>",
+			);
+			expect(notificationContent).toContain(" (remaining content truncated)");
+		});
+
+		test("does not alter queue/progress/task-notification when no tools exist", () => {
+			const taskNotification = createTaskNotification("agent-xyz", 1000);
+			const entries: SessionLineItem[] = [
+				{ type: "user", uuid: "u1", message: { content: "Hello" } },
+				{
+					type: "assistant",
+					uuid: "a1",
+					parentUuid: "u1",
+					message: { content: [{ type: "text", text: "Hi" }] },
+				},
+				{
+					type: "queue-operation",
+					timestamp: "2026-02-15T00:00:00.000Z",
+					sessionId: "s1",
+					operation: "enqueue",
+					content: taskNotification,
+				},
+				{ type: "progress", uuid: "p1", parentUuid: "a1" },
+				{
+					type: "user",
+					uuid: "u2",
+					parentUuid: "p1",
+					message: { content: taskNotification },
+				},
+			];
+
+			const result = removeToolCallsFromHistory(entries, {
+				keepTurnsWithTools: 20,
+				truncatePercent: 50,
+			});
+
+			expect(
+				result.processedEntries.some((e) => e.type === "queue-operation"),
+			).toBe(true);
+			expect(result.processedEntries.some((e) => e.type === "progress")).toBe(
+				true,
+			);
+
+			const notificationEntry = result.processedEntries.find(
+				(e) =>
+					e.type === "user" &&
+					typeof e.message?.content === "string" &&
+					e.message.content.startsWith("<task-notification>"),
+			);
+			expect(notificationEntry).toBeDefined();
+			expect(notificationEntry!.message!.content).toBe(taskNotification);
 		});
 	});
 
